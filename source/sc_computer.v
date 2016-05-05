@@ -20,7 +20,8 @@ module sc_computer (resetn,clock,mem_clk,pc,inst,aluout,cpu_memout,imem_clk,dmem
    sc_cpu cpu (clock,resetn,inst,cpu_memout,pc,cpu_wmem,aluout,data);          // CPU module.
    sc_instmem  imem (pc,inst,clock,mem_clk,imem_clk);                  // instruction memory.
    sc_datamem  dmem (aluout,data,memout,wmem,dmem_clk); // data memory.
-	sc_hub hub (resetn, aluout,data,cpu_memout,cpu_wmem,clock,mem_clk,dmem_clk,wmem,memout);
+	sc_hub hub (resetn, aluout,data,cpu_memout,cpu_wmem,clock,mem_clk,dmem_clk,wmem,memout,
+		LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5);
 
 endmodule
 
