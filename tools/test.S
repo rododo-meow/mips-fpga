@@ -2,10 +2,22 @@
 .set noat
 .org 0x0
 
-main:   lui $1, data                      # address of data[0]
+main:   ori $4, $0, data                  # address of data[0]
         addi $5, $0, (data_end - data)/4  # counter
 call:   jal sum                           # call function
         sw $2, 0($4)                      # store result
+        lui $1, 0xf000
+        andi $3, $2, 0xf
+        sw $3, 0($1)
+        srl $3, $2, 4
+        andi $3, $3, 0xf
+        sw $3, 4($1)
+        srl $3, $2, 8
+        andi $3, $3, 0xf
+        sw $3, 8($1)
+        srl $3, $2, 12
+        andi $3, $3, 0xf
+        sw $3, 12($1)
         lw $9, 0($4)                      # check sw
         sub $8, $9, $4                    # sub: $8 <- $9 - $4
         addi $5, $0, 3                    # counter
