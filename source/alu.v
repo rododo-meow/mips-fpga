@@ -9,13 +9,13 @@ module alu (a,b,aluc,s,z);
       begin                                   // event
          casex (aluc)
              4'bx000: s = a + b;              //x000 ADD
-                                              //x100 SUB
-             // complete by yourself          //x001 AND
-                                              //x101 OR
-                                              //x010 XOR
-                                              //x110 LUI: imm << 16bit             
-                                              //0011 SLL: rd <- (rt << sa)
-                                              //0111 SRL: rd <- (rt >> sa) (logical)
+             4'bx100: s = a - b;              //x100 SUB
+             4'bx001: s = a & b;              //x001 AND
+             4'bx101: s = a | b;              //x101 OR
+             4'bx010: s = a ^ b;              //x010 XOR
+             4'bx110: s = b << 16;             //x110 LUI: imm << 16bit             
+             4'b0011: s = b << a;             //0011 SLL: rd <- (rt << sa)
+             4'b0111: s = b >> a;             //0111 SRL: rd <- (rt >> sa) (logical)
              4'b1111: s = $signed(b) >>> a;   //1111 SRA: rd <- (rt >> sa) (arithmetic)
              default: s = 0;
          endcase
