@@ -1,11 +1,31 @@
-DEPTH = 32;            % Memory depth and width are required %
-WIDTH = 32;            % Enter a decimal number %
-ADDRESS_RADIX = HEX;   % Address and value radixes are optional %
-DATA_RADIX = HEX;      % Enter BIN, DEC, HEX, or OCT; unless %
-CONTENT                % otherwise specified, radixes = HEX %
+DEPTH = 32;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
 BEGIN
-14 : 000000A3;         % (50) data[0] %
-15 : 00000027;         % (54) data[1] %
-16 : 00000079;         % (58) data[2] %
-17 : 00000115;         % (5C) data[3] %
-END ;
+  0 : 00000000; % (000) %
+  1 : 00000000; % (004) %
+  2 : 00000000; % (008) %
+  3 : 00000000; % (00C) %
+  4 : 00000000; % (010) %
+  5 : 00000000; % (014) %
+  6 : 00000000; % (018) %
+  7 : 00000000; % (01C) %
+  8 : 00000000; % (020) %
+  9 : 00000000; % (024) %
+  a : 00000000; % (028) %
+  b : 00000000; % (02C) %
+  c : 00000000; % (030) %
+  d : 00000000; % (034) %
+  e : 00000000; % (038) %
+  f : 00000000; % (03C) %
+ 10 : 00000000; % (040) %
+ 11 : 00000000; % (044) %
+ 12 : 00000000; % (048) %
+ 13 : 00000000; % (04C) %
+ 14 : 000000A3; % (050) %
+ 15 : 00000027; % (054) %
+ 16 : 00000079; % (058) %
+ 17 : 00000115; % (05C) %
+END;
