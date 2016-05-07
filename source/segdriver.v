@@ -1,11 +1,9 @@
-module segdriver(hex, seg, clk);
+module segdriver(hex, seg);
 input [3:0] hex;
 output [6:0] seg;
-input clk;
-
 reg [6:0] seg;
 
-always @(posedge clk)
+always @(hex)
 	case (hex)
 	4'h0: seg <= ~7'b0111111;
 	4'h1: seg <= ~7'b0000110;

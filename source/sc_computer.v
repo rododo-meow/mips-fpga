@@ -4,7 +4,8 @@
 //                                                         //
 /////////////////////////////////////////////////////////////
 
-module sc_computer (resetn,clock,mem_clk,pc,inst,aluout,cpu_memout,imem_clk,dmem_clk,KEY,SW,SEG0,SEG1,SEG2,SEG3,SEG4,SEG5,LED);
+module sc_computer (resetn,clock,mem_clk,pc,inst,aluout,cpu_memout,imem_clk,dmem_clk,
+	KEY,SW,SEG0,SEG1,SEG2,SEG3,SEG4,SEG5,LED);
    
    input resetn,clock,mem_clk;
 	input [3:0] KEY;
@@ -21,7 +22,7 @@ module sc_computer (resetn,clock,mem_clk,pc,inst,aluout,cpu_memout,imem_clk,dmem
    sc_instmem  imem (pc,inst,clock,mem_clk,imem_clk);                  // instruction memory.
    sc_datamem  dmem (aluout,data,memout,wmem,dmem_clk); // data memory.
 	sc_hub hub (resetn, aluout,data,cpu_memout,cpu_wmem,clock,mem_clk,dmem_clk,wmem,memout,
-		LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5);
+		LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5, SW, KEY);
 
 endmodule
 

@@ -4,53 +4,41 @@ ADDRESS_RADIX = HEX;
 DATA_RADIX = HEX;
 CONTENT
 BEGIN
-  0 : 34040050; % (000) main:   ori $4, $0, data                  # address of data[0] %
-  1 : 20050004; % (004)         addi $5, $0, (data_end - data)/4  # counter %
-  2 : 0c000027; % (008) call:   jal sum                           # call function %
-  3 : 00000000; % (00c)  %
-  4 : ac820000; % (010)         sw $2, 0($4)                      # store result %
-  5 : 3c01f000; % (014)         lui $1, 0xf000 %
-  6 : 3043000f; % (018)         andi $3, $2, 0xf %
-  7 : ac230000; % (01c)         sw $3, 0($1) %
-  8 : 00021902; % (020)         srl $3, $2, 4 %
-  9 : 3063000f; % (024)         andi $3, $3, 0xf %
-  A : ac230004; % (028)         sw $3, 4($1) %
-  B : 00021a02; % (02c)         srl $3, $2, 8 %
-  C : 3063000f; % (030)         andi $3, $3, 0xf %
-  D : ac230008; % (034)         sw $3, 8($1) %
-  E : 00021b02; % (038)         srl $3, $2, 12 %
-  F : 3063000f; % (03c)         andi $3, $3, 0xf %
- 10 : ac23000c; % (040)         sw $3, 12($1) %
- 11 : 8c890000; % (044)         lw $9, 0($4)                      # check sw %
- 12 : 01244022; % (048)         sub $8, $9, $4                    # sub: $8 <- $9 - $4 %
- 13 : 20050003; % (04c)         addi $5, $0, 3                    # counter %
- 14 : 20a5ffff; % (050) loop2:  addi $5, $5, -1                   # counter - 1 %
- 15 : 34a8ffff; % (054)         ori $8, $5, 0xffff                # zero-extend: 0000ffff %
- 16 : 39085555; % (058)         xori $8, $8, 0x5555               # zero-extend: 0000aaaa %
- 17 : 2009ffff; % (05c)         addi $9, $0, -1                   # sign-extend: ffffffff %
- 18 : 312affff; % (060)         andi $10, $9, 0xffff              # zero-extend: 0000ffff %
- 19 : 01493025; % (064)         or $6, $10, $9                    # or: ffffffff %
- 1A : 01494026; % (068)         xor $8, $10, $9                   # xor: ffff0000 %
- 1B : 01463824; % (06c)         and $7, $10, $6                   # and: 0000ffff %
- 1C : 10a00003; % (070)         beq $5, $0, shift                 # if $5 = 0, goto shift %
- 1D : 00000000; % (074)  %
- 1E : 08000014; % (078)         j loop2                           # jump loop2 %
+  0 : 3c10f300; % (000) main:             lui $16, 0xf300  # ADDR_KEY %
+  1 : 3c110000; % (004)                   lui $17, 0x0     # For accumulate %
+  2 : 3c12f000; % (008)                   lui $18, 0xf000  # ADDR_SEG %
+  3 : 3c13f200; % (00c)                   lui $19, 0xf200  # ADDR_SW %
+  4 : 3c010000; % (010)                   lui $1, 0 %
+  5 : 0c000022; % (014)                   jal print_num %
+  6 : 00000000; % (018)  %
+  7 : 0c00001d; % (01c)                   jal wait_for_release %
+  8 : 00000000; % (020)  %
+  9 : 0c000018; % (024) loop:             jal wait_for_key %
+  A : 00000000; % (028)  %
+  B : 0c000015; % (02c)                   jal read_sw %
+  C : 00000000; % (030)  %
+  D : 02218820; % (034)                   add $17, $17, $1 %
+  E : 36210000; % (038)                   ori $1, $17, 0 %
+  F : 0c000022; % (03c)                   jal print_num %
+ 10 : 00000000; % (040)  %
+ 11 : 0c00001d; % (044)                   jal wait_for_release %
+ 12 : 00000000; % (048)  %
+ 13 : 08000009; % (04c)                   j loop %
+ 14 : 00000000; % (050)  %
+ 15 : 8e610028; % (054) read_sw:          lw $1, 40($19) %
+ 16 : 03e00008; % (058)                   jr $ra %
+ 17 : 00000000; % (05c)  %
+ 18 : 8e010004; % (060) wait_for_key:     lw $1, 4($16) %
+ 19 : 1401fffe; % (064)                   bne $0, $1, wait_for_key %
+ 1A : 00000000; % (068)  %
+ 1B : 03e00008; % (06c)                   jr $ra %
+ 1C : 00000000; % (070)  %
+ 1D : 8e010004; % (074) wait_for_release: lw $1, 4($16) %
+ 1E : 1001fffe; % (078)                   beq $0, $1, wait_for_release %
  1F : 00000000; % (07c)  %
- 20 : 2005ffff; % (080) shift:  addi $5, $0, -1                   # $5 = ffffffff %
- 21 : 000543c0; % (084)         sll $8, $5, 15                    # <<15 = ffff8000 %
- 22 : 00084400; % (088)         sll $8, $8, 16                    # <<16 = 80000000 %
- 23 : 00084403; % (08c)         sra $8, $8, 16                    # >>16 = ffff8000 (arith) %
- 24 : 000843c2; % (090)         srl $8, $8, 15                    # >>15 = 0001ffff (logic) %
- 25 : 08000025; % (094) finish: j finish                          # dead loop %
- 26 : 00000000; % (098)  %
- 27 : 00004020; % (09c) sum:    add $8, $0, $0                    # sum %
- 28 : 8c890000; % (0a0) loop:   lw $9, 0($4)                      # load data %
- 29 : 20840004; % (0a4)         addi $4, $4, 4                    # address + 4 %
- 2A : 01094020; % (0a8)         add $8, $8, $9                    # sum %
- 2B : 20a5ffff; % (0ac)         addi $5, $5, -1                   # counter - 1 %
- 2C : 14a0fffb; % (0b0)         bne $5, $0, loop                  # finish? %
- 2D : 00000000; % (0b4)  %
- 2E : 00081000; % (0b8)         sll $2, $8, 0                     # move result to $v0 %
- 2F : 03e00008; % (0bc)         jr $ra                            # return %
- 30 : 00000000; % (0c0)  %
+ 20 : 03e00008; % (080)                   jr $ra %
+ 21 : 00000000; % (084)  %
+ 22 : ae410018; % (088) print_num:        sw $1, 24($18) %
+ 23 : 03e00008; % (08c)                   jr $ra %
+ 24 : 00000000; % (090)  %
 END;

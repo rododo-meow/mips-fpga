@@ -7,7 +7,7 @@ set_global_assignment -name DEVICE 5CSEMA5F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY "toplevel"
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 14.0
 set_global_assignment -name LAST_QUARTUS_VERSION 15.1.0
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "12:24:29 MAY 05,2016"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:07:12 MAY 06,2016"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 896
 set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
@@ -407,4 +407,58 @@ set_global_assignment -name SOURCE_FILE pll.cmp
 set_global_assignment -name QIP_FILE pll.qip
 set_global_assignment -name VERILOG_FILE pll.v -library pll
 set_global_assignment -name VERILOG_FILE source/sc_hub.v
+set_location_assignment PIN_H15 -to TD_CLK27
+set_location_assignment PIN_D2 -to TD_DATA[0]
+set_location_assignment PIN_B1 -to TD_DATA[1]
+set_location_assignment PIN_E2 -to TD_DATA[2]
+set_location_assignment PIN_B2 -to TD_DATA[3]
+set_location_assignment PIN_D1 -to TD_DATA[4]
+set_location_assignment PIN_E1 -to TD_DATA[5]
+set_location_assignment PIN_C2 -to TD_DATA[6]
+set_location_assignment PIN_B3 -to TD_DATA[7]
+set_location_assignment PIN_A5 -to TD_HS
+set_location_assignment PIN_F6 -to TD_RESET_N
+set_location_assignment PIN_A3 -to TD_VS
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -entity DE1_SOC -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -entity DE1_SOC -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -entity DE1_SOC -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -entity DE1_SOC -section_id Top
+set_location_assignment PIN_C25 -to UART_TX
+set_location_assignment PIN_B25 -to UART_RX
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_TX
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_RX
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MINIMUM
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_POWER_UP_CONDITIONS AUTO
+set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
+set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION AUTOMATICALLY
+set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION AUTOMATICALLY
+set_global_assignment -name SEED 1
+set_global_assignment -name QII_AUTO_PACKED_REGISTERS AUTO
+set_global_assignment -name TREAT_BIDIR_AS_OUTPUT OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING OFF
+set_global_assignment -name FITTER_EFFORT "FAST FIT"
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT FAST
+set_global_assignment -name AUTO_GLOBAL_CLOCK ON
+set_global_assignment -name AUTO_GLOBAL_REGISTER_CONTROLS ON
+set_global_assignment -name SYNCHRONIZER_IDENTIFICATION AUTO
+set_global_assignment -name OPTIMIZE_FOR_METASTABILITY ON
+set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS OFF
+set_global_assignment -name ADVANCED_PHYSICAL_OPTIMIZATION ON
+set_global_assignment -name SAFE_STATE_MACHINE OFF
+set_global_assignment -name PARALLEL_SYNTHESIS ON
+set_global_assignment -name ALLOW_POWER_UP_DONT_CARE ON
+set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
+set_global_assignment -name OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name AUTO_RAM_RECOGNITION ON
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
+set_global_assignment -name REPORT_PARAMETER_SETTINGS ON
+set_global_assignment -name REPORT_SOURCE_ASSIGNMENTS ON
+set_global_assignment -name REPORT_CONNECTIVITY_CHECKS ON
+set_global_assignment -name SYNTH_CLOCK_MUX_PROTECTION ON
+set_global_assignment -name SYNTH_GATED_CLOCK_CONVERSION OFF
+set_global_assignment -name SYNTH_PROTECT_SDC_CONSTRAINT OFF
+set_global_assignment -name SYNTHESIS_EFFORT AUTO
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
