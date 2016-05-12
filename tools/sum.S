@@ -8,24 +8,35 @@ main:             lui $16, 0xf300  # ADDR_KEY
                   lui $19, 0xf200  # ADDR_SW
                   lui $1, 0
                   jal print_num
-                  jal wait_for_release
-loop:             jal wait_for_key
-                  jal read_sw
+loop:             jal wait_for_release
+                  jal get_key
+                  ori $2, $0, 0xd
+                  beq $2, $1, do_add
+                  ori $2, $0, 0xb
+                  beq $2, $1, do_or
+                  j loop
+do_add:           jal read_sw
                   add $17, $17, $1
                   ori $1, $17, 0
                   jal print_num
-                  jal wait_for_release
+                  j loop
+do_or:            jal read_sw
+                  or $17, $17, $1
+                  ori $1, $17, 0
+                  jal print_num
                   j loop
                   
 read_sw:          lw $1, 40($19)
                   jr $ra
 
-wait_for_key:     lw $1, 4($16)
-                  bne $0, $1, wait_for_key
+get_key:          ori $2, $0, 0xf
+get_key_loop:     lw $1, 16($16)
+                  beq $2, $1, get_key_loop
                   jr $ra
 
-wait_for_release: lw $1, 4($16)
-                  beq $0, $1, wait_for_release
+wait_for_release: ori $2, $0, 0xf
+_loop:            lw $1, 16($16)
+                  bne $2, $1, _loop
                   jr $ra
 
 print_num:        sw $1, 24($18)
