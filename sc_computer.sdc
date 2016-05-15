@@ -47,8 +47,6 @@ create_clock -name {CLOCK_50} -period 20.000 -waveform { 0.000 10.000 } [get_por
 #**************************************************************
 
 derive_pll_clocks
-create_generated_clock -name {imem_clk} -source [get_pins {pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}] -duty_cycle 25.000 -multiply_by 1 -phase 90 -master_clock {pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_pins { computer|imem|imem_clk|combout }] 
-create_generated_clock -name {dmem_clk} -source [get_pins { pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk }] -duty_cycle 25.000 -multiply_by 1 -phase 180 -master_clock {pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk} [get_nets {computer|hub|dmem_clk}] 
 
 
 #**************************************************************

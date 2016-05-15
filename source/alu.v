@@ -1,10 +1,8 @@
-module alu (a,b,aluc,s,z);
+module alu (a,b,aluc,s);
    input [31:0] a,b;
    input [3:0] aluc;
    output [31:0] s;
-   output        z;
    reg [31:0] s;
-   reg        z;
    always @ (a or b or aluc) 
       begin                                   // event
          casex (aluc)
@@ -18,8 +16,6 @@ module alu (a,b,aluc,s,z);
              4'b0111: s = b >> a;             //0111 SRL: rd <- (rt >> sa) (logical)
              4'b1111: s = $signed(b) >>> a;   //1111 SRA: rd <- (rt >> sa) (arithmetic)
              default: s = 0;
-         endcase
-         if (s == 0 )  z = 1;
-            else z = 0;         
+         endcase       
       end      
 endmodule 

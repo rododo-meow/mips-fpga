@@ -278,33 +278,8 @@ set_global_assignment -name SYNTH_CLOCK_MUX_PROTECTION ON
 set_global_assignment -name SYNTH_GATED_CLOCK_CONVERSION OFF
 set_global_assignment -name SYNTH_PROTECT_SDC_CONSTRAINT OFF
 set_global_assignment -name SYNTHESIS_EFFORT AUTO
-set_global_assignment -name VERILOG_FILE source/io_pio_output.v
-set_global_assignment -name VERILOG_FILE source/io_pio_input.v -hdl_version SystemVerilog_2005
-set_global_assignment -name SDC_FILE sc_computer.sdc
-set_global_assignment -name VERILOG_FILE source/toplevel.v
-set_global_assignment -name VERILOG_FILE source/testbench.v
-set_global_assignment -name VERILOG_FILE source/segdriver.v
-set_global_assignment -name VERILOG_FILE source/sc_instmen.v
-set_global_assignment -name VERILOG_FILE source/sc_datamem.v
-set_global_assignment -name VERILOG_FILE source/sc_cu.v
-set_global_assignment -name VERILOG_FILE source/sc_cpu.v
-set_global_assignment -name VERILOG_FILE source/sc_computer.v
-set_global_assignment -name VERILOG_FILE source/regfile.v
-set_global_assignment -name VERILOG_FILE source/mux4x32.v
-set_global_assignment -name VERILOG_FILE source/mux2x32.v
-set_global_assignment -name VERILOG_FILE source/mux2x5.v
-set_global_assignment -name VERILOG_FILE source/lpm_rom_irom.v
-set_global_assignment -name VERILOG_FILE source/lpm_ram_dq_dram.v
-set_global_assignment -name VERILOG_FILE source/dff32.v
-set_global_assignment -name VERILOG_FILE source/alu.v
-set_global_assignment -name SIP_FILE pll.sip
-set_global_assignment -name SOURCE_FILE pll.cmp
-set_global_assignment -name QIP_FILE pll.qip
-set_global_assignment -name VERILOG_FILE pll.v -library pll
-set_global_assignment -name VERILOG_FILE source/sc_hub.v
 set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
 set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (SystemVerilog)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "SYSTEMVERILOG HDL" -section_id eda_simulation
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
@@ -475,5 +450,37 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_SYNC_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_VS
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_TX
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UART_RX
+set_global_assignment -name SYSTEMVERILOG_FILE source/io_pio_input.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/regfile.sv
+set_global_assignment -name VERILOG_FILE source/io_pio_output.v
+set_global_assignment -name SDC_FILE sc_computer.sdc
+set_global_assignment -name VERILOG_FILE source/toplevel.v
+set_global_assignment -name VERILOG_FILE source/testbench.v
+set_global_assignment -name VERILOG_FILE source/segdriver.v
+set_global_assignment -name VERILOG_FILE source/sc_instmen.v
+set_global_assignment -name VERILOG_FILE source/sc_datamem.v
+set_global_assignment -name VERILOG_FILE source/sc_cu.v
+set_global_assignment -name VERILOG_FILE source/sc_cpu.v
+set_global_assignment -name VERILOG_FILE source/sc_computer.v
+set_global_assignment -name VERILOG_FILE source/mux4x32.v
+set_global_assignment -name VERILOG_FILE source/mux2x32.v
+set_global_assignment -name VERILOG_FILE source/mux2x5.v
+set_global_assignment -name VERILOG_FILE source/lpm_rom_irom.v
+set_global_assignment -name VERILOG_FILE source/lpm_ram_dq_dram.v
+set_global_assignment -name VERILOG_FILE source/dff32.v
+set_global_assignment -name VERILOG_FILE source/alu.v
+set_global_assignment -name SIP_FILE pll.sip
+set_global_assignment -name SOURCE_FILE pll.cmp
+set_global_assignment -name QIP_FILE pll.qip
+set_global_assignment -name VERILOG_FILE pll.v -library pll
+set_global_assignment -name VERILOG_FILE source/sc_hub.v
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name VERILOG_FILE source/pipeline_reg.v
+set_global_assignment -name VERILOG_FILE source/pipeline_F.v
+set_global_assignment -name VERILOG_FILE source/pipeline_D.v
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_E.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_M.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_W.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/hazard_cu.sv
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

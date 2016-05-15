@@ -1,4 +1,4 @@
-module sc_hub(resetn, addr, datain, dataout, we, clock, mem_clk, dmem_clk, wmem, memout,
+module sc_hub(resetn, addr, datain, dataout, we, clk, wmem, memout,
 	LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5, SW, KEY);
 localparam ADDR_IO  = 32'hf0000000;
 localparam ADDR_SEG = 32'hf0000000;
@@ -7,11 +7,11 @@ localparam ADDR_SW  = 32'hf2000000;
 localparam ADDR_KEY = 32'hf3000000;
 
 input [31:0] addr, datain, memout;
-input we, clock, mem_clk, resetn;
+input we, clk, resetn;
 input [9:0] SW;
 input [3:0] KEY;
 output [31:0] dataout;
-output dmem_clk, wmem;
+output wmem;
 output [9:0] LED;
 output [6:0] SEG0, SEG1, SEG2, SEG3, SEG4, SEG5;
 
@@ -22,7 +22,6 @@ wire [23:0] seg_buf;
 reg [31:0] ioout;
 wire [31:0] sw_dataout, key_dataout;
 
-assign dmem_clk = ~clock & mem_clk;
 assign wmem = target_mem && we;
 
 assign dataout = target_io ? ioout : memout;
@@ -36,7 +35,7 @@ always @* begin
 end
 
 io_pio_output #(.WIDTH(10)) led_pio(
-	.clk(dmem_clk),
+	.clk(clk),
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.datain(datain),
@@ -45,7 +44,7 @@ io_pio_output #(.WIDTH(10)) led_pio(
 );
 
 io_pio_output #(.WIDTH(24), .GROUP(4)) seg_pio(
-	.clk(dmem_clk),
+	.clk(clk),
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.datain(datain),
@@ -54,7 +53,7 @@ io_pio_output #(.WIDTH(24), .GROUP(4)) seg_pio(
 );
 
 io_pio_input #(.WIDTH(4)) key_pio(
-	.clk(dmem_clk),
+	.clk(clk),
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.dataout(key_dataout),
@@ -62,7 +61,7 @@ io_pio_input #(.WIDTH(4)) key_pio(
 );
 
 io_pio_input #(.WIDTH(10)) sw_pio(
-	.clk(dmem_clk),
+	.clk(clk),
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.dataout(sw_dataout),

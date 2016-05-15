@@ -5,13 +5,12 @@ input [9:0] SW;
 output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
 output [9:0] LEDR;
 
-wire mem_clk, clock, locked;
+wire clock, locked;
 wire [31:0] pc;
 
 pll pll(
 	.refclk(CLOCK_50),
-	.outclk_0(mem_clk),
-	.outclk_1(clock),
+	.outclk_0(clock),
 	.rst(~KEY[0]),
 	.locked(locked)
 );
@@ -19,7 +18,6 @@ pll pll(
 sc_computer computer(
 	.resetn(KEY[0] & locked),
 	.clock(clock),
-	.mem_clk(mem_clk),
 	.LED(LEDR),
 	.SEG0(HEX0),
 	.SEG1(HEX1),

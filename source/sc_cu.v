@@ -1,8 +1,8 @@
 module sc_cu (op, func, z, wmem, wreg, regrt, m2reg, aluc, shift,
-              aluimm, pcsource, jal, sext);
+              aluimm, pcsource, jal, sext, need_q1, need_q2);
    input  [5:0] op,func;
    input        z;
-   output       wreg,regrt,jal,m2reg,shift,aluimm,sext,wmem;
+   output       wreg,regrt,jal,m2reg,shift,aluimm,sext,wmem,need_q1,need_q2;
    output [3:0] aluc;
    output [1:0] pcsource;
    wire r_type = ~|op;
@@ -33,6 +33,10 @@ module sc_cu (op, func, z, wmem, wreg, regrt, m2reg, aluc, shift,
    wire i_j    = op == 6'b000010;
    wire i_jal  = op == 6'b000011;
   
+   assign need_q1 = i_add | i_sub | i_and | i_or | i_xor | i_jr | 
+						  i_addi | i_andi | i_ori | i_xori | i_lw | i_sw | i_beq | i_bne;
+	assign need_q2 = i_add | i_sub | i_and | i_or | i_xor | i_sll |
+	                 i_srl | i_sra | i_sw | i_beq | i_bne;
    assign pcsource[1] = i_jr | i_j | i_jal;
    assign pcsource[0] = ( i_beq & z ) | (i_bne & ~z) | i_j | i_jal ;
    
