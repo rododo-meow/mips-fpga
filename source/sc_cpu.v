@@ -1,15 +1,22 @@
-module sc_cpu (clock,resetn,mem_dataout,wmem,mem_addr,mem_datain,pc,inst);
-input [31:0] inst,mem_dataout;
+module sc_cpu (clock,resetn,mem_dataout,wmem,mem_addr,mem_datain,pc,instmem_dataout);
+input [31:0] mem_dataout;
+input [7:0] instmem_dataout;
 input clock,resetn;
 output [31:0] mem_datain,pc,mem_addr;
 output wmem;
   
-wire [31:0] f_pc, f_p4, f_inst, next_pc;
-wire f_stall;
+wire [31:0] f_pc, next_pc, f_next_inst_pc;
+wire [47:0] f_inst, _f_inst;
+wire [2:0] f_off, next_off;
+wire f_stall, f_mode, next_mode;
 
-wire [1:0] d_pcsource;
-wire [31:0] d_p4, d_inst, d_pc_4_imm, d_q1, d_q2, d_ext_imm, _d_q1, _d_q2, dbg_d_pc;
-wire d_stall, d_bubble, d_wmem, d_wreg, d_regrt, d_m2reg, d_shift, d_aluimm, d_jal, d_sext, d_need_q1, d_need_q2;
+wire [31:0] t_next_inst_pc, t_transed_inst;
+wire [47:0] t_inst;
+wire t_stall, t_bubble, t_mode;
+
+wire [31:0] d_next_inst_pc, d_next_inst_pc_imm, d_q1, d_q2, d_ext_imm, _d_q1, _d_q2, dbg_d_pc, d_target_pc;
+wire [31:0] d_inst;
+wire d_stall, d_bubble, d_wmem, d_wreg, d_regrt, d_m2reg, d_shift, d_aluimm, d_jal, d_sext, d_need_q1, d_need_q2, d_mode, d_flush_fetch, d_target_mode;
 wire [3:0] d_aluc;
 wire [4:0] d_rn;
 wire [5:0] d_op = d_inst[31:26];
@@ -52,32 +59,41 @@ hazard_cu hazard_cu(
 pipeline_F F(
 	.clk(clock),
 	.resetn(resetn),
-	.f_stall(f_stall),
-	.next_pc(next_pc),
-	.f_pc(f_pc)
+	.f_stall(0),
+	.next_pc(next_pc), .f_pc(f_pc),
+	.next_off(next_off), .f_off(f_off),
+	.next_mode(next_mode), .f_mode(f_mode),
+	._f_inst(_f_inst), .f_inst(f_inst)
 );
 
-assign f_p4 = f_pc + 4;
-assign pc = f_pc;
-assign f_inst = inst;
-mux4x32 f_mux_nextpc(
-	.a0(f_p4),
-	.a1(d_pc_4_imm),
-	.a2(d_q1),
-	.a3({ d_p4[31:28], d_addr, 2'b00 }),
-	.s(d_pcsource),
-	.y(next_pc)
+assign pc = f_pc + f_off;
+fetch_cu fetch_cu(
+	.f_pc(f_pc), .next_pc(next_pc), .f_next_inst_pc(f_next_inst_pc),
+	.f_off(f_off), .next_off(next_off),
+	.instmem_dataout(instmem_dataout), .f_inst(f_inst), ._f_inst(_f_inst),
+	.f_mode(f_mode), .next_mode(next_mode),
+	.d_flush_fetch(d_flush_fetch),
+	.d_target_pc(d_target_pc), .d_target_mode(d_target_mode)
 );
 
+// =============== TRANS ================
+pipeline_T T(
+	.clk(clock),
+	.resetn(resetn),
+	.t_stall(t_stall), .t_bubble(t_bubble),
+	.f_inst(f_inst), .t_inst(t_inst),
+	.t_isbubble(t_isbubble)
+);
+	
 // ================= ID =================
 pipeline_D D(
 	.clk(clock),
 	.resetn(resetn),
 	.d_stall(d_stall),
 	.d_bubble(d_bubble),
-	.f_inst(f_inst), .d_inst(d_inst),
-	.f_p4(f_p4), .d_p4(d_p4),
-	.dbg_f_pc(f_pc), .dbg_d_pc(dbg_d_pc)
+	.t_inst(f_mode == 0 ? f_inst[31:0] : t_transed_inst), .d_inst(d_inst),
+	.t_next_inst_pc(f_mode == 0 ? f_next_inst_pc : t_next_inst_pc), .d_next_inst_pc(d_next_inst_pc),
+	.dbg_t_pc(t_pc), .dbg_d_pc(dbg_d_pc)
 );
 
 sc_cu d_cu(
@@ -90,7 +106,6 @@ sc_cu d_cu(
 	.aluc(d_aluc),
 	.shift(d_shift),
 	.aluimm(d_aluimm),
-	.pcsource(d_pcsource),
 	.jal(d_jal),
 	.sext(d_sext),
 	.need_q1(d_need_q1), .need_q2(d_need_q2)
@@ -107,7 +122,7 @@ regfile rf(
 	.qb(_d_q2)
 );
 assign d_ext_imm = { {16{d_sext & d_imm[15]}}, d_imm };
-assign d_pc_4_imm = d_p4 + { d_ext_imm[29:0], 2'b00 };
+assign d_next_inst_pc_imm = d_next_inst_pc + { d_ext_imm[29:0], 2'b00 };
 mux2x5 d_mux_rn(
 	.a0(d_rd),
 	.a1(d_rt),
@@ -144,7 +159,7 @@ pipeline_E E(
 	.d_aluc(d_aluc), .e_aluc(e_aluc),
 	.d_aluimm(d_aluimm), .e_aluimm(e_aluimm),
 	.d_shift(d_shift), .e_shift(e_shift),
-	.d_p4(d_p4), .e_p4(e_p4),
+	.d_next_inst_pc(d_next_inst_pc), .e_next_inst_pc(e_next_inst_pc),
 	.d_q1(d_q1), .e_q1(e_q1),
 	.d_q2(d_q2), .e_q2(e_q2),
 	.d_ext_imm(d_ext_imm), .e_ext_imm(e_ext_imm),
@@ -173,7 +188,7 @@ alu e_alu(
 );
 mux2x32 e_mux_data(
 	.a0(e_aluout),
-	.a1(e_p4 + 4),
+	.a1(e_next_inst_pc),
 	.s(e_jal),
 	.y(e_data)
 );

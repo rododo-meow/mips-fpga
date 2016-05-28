@@ -2,11 +2,11 @@ module pipeline_E(
 	input clk, resetn, e_stall, e_bubble,
 	input d_wreg, d_m2reg, d_wmem, d_jal, d_shift, d_aluimm, 
 	input [3:0] d_aluc, 
-	input [31:0] d_p4, d_q1, d_q2, d_ext_imm, dbg_d_pc, dbg_d_inst,
+	input [31:0] d_next_inst_pc, d_q1, d_q2, d_ext_imm, dbg_d_pc, dbg_d_inst,
 	input [4:0] d_rn,
 	output e_wreg, e_m2reg, e_wmem, e_jal, e_shift, e_aluimm, 
 	output [3:0] e_aluc, 
-	output [31:0] e_p4, e_q1, e_q2, e_ext_imm, dbg_e_pc, dbg_e_inst,
+	output [31:0] e_next_inst_pc, e_q1, e_q2, e_ext_imm, dbg_e_pc, dbg_e_inst,
 	output [4:0] e_rn);
 	
 pipeline_reg #(
@@ -80,13 +80,13 @@ pipeline_reg #(
 
 pipeline_reg #(
 	.WIDTH(32)
-) E_p4(
+) E_next_inst_pc(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(e_stall),
 	.bubble(e_bubble),
-	.d(d_p4),
-	.q(e_p4)
+	.d(d_next_inst_pc),
+	.q(e_next_inst_pc)
 );
 
 pipeline_reg #(
@@ -146,7 +146,7 @@ pipeline_reg #(
 );
 
 pipeline_reg #(
-	.WIDTH(32),
+	.WIDTH(48),
 	.BUBBLE_V(0)
 ) E_dbg_inst(
 	.clk(clk),

@@ -37,12 +37,14 @@ always @(negedge clock) begin
 		cycle = 0;
 	end else begin
 		$display("Cycle %d", cycle);
-		$display("\tf_pc: 0x%08x", computer.cpu.f_pc);
+		$display("\tf_pc: 0x%08x, f_off: 0x%03b", computer.cpu.f_pc, computer.cpu.f_off);
+		$display("\tf_next_inst_pc: 0x%08x, next_off: 0x%03b", computer.cpu.f_next_inst_pc, computer.cpu.next_off);
+		$display("\tf_inst: 0x%012x, instmem_dataout: 0x%02x, _f_inst: 0x%012x", computer.cpu.f_inst, computer.cpu.instmem_dataout, computer.cpu._f_inst);
 		$display("\t=======================");
 		$display("\td_pc: 0x%08x, d_inst: 0x%08x", computer.cpu.dbg_d_pc, computer.cpu.d_inst);
 		$display("\td_wreg: %d, d_m2reg: %d, d_wmem: %d, d_jal: %d", computer.cpu.d_wreg, computer.cpu.d_m2reg, computer.cpu.d_wmem, computer.cpu.d_jal);
 		$display("\td_aluc: %04b, d_aluimm: %d, d_shift: %d, d_regrt: %d", computer.cpu.d_aluc, computer.cpu.d_aluimm, computer.cpu.d_shift, computer.cpu.d_regrt);
-		$display("\td_q1: 0x%08x, d_q2: 0x%08x, d_pcsource: %02b", computer.cpu.d_q1, computer.cpu.d_q2, computer.cpu.d_pcsource);
+		$display("\td_q1: 0x%08x, d_q2: 0x%08x", computer.cpu.d_q1, computer.cpu.d_q2);
 		$display("\t=======================");
 		$display("\te_pc: 0x%08x, e_inst: 0x%08x", computer.cpu.dbg_e_pc, computer.cpu.dbg_e_inst);
 		$display("\te_aluout: 0x%08x, e_data: 0x%08x, e_rn: %d", computer.cpu.e_aluout, computer.cpu.e_data, computer.cpu.e_rn);
