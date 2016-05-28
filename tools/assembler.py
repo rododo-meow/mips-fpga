@@ -203,7 +203,7 @@ class Assembler:
             for l in f.readlines():
                 if self.re_label.match(l):
                     m = self.re_label.match(l)
-                    self.label[m.group(1)] = self.inst_now
+                    self.label[m.group(1)] = self.inst_now if self.sect == "text" else self.data_now
                 if l.strip() == "":
                     continue
                 succ = False

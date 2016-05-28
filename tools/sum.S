@@ -1,5 +1,4 @@
 .text
-.set noat
 .org 0
 
 main:             lui $16, 0xf300  # ADDR_KEY

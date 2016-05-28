@@ -1,21 +1,10 @@
-.PHONY: all test.o clean
-.PRECIOUS: %.data.mif %.inst.mif
+.PHONY: clean
 
-all: test.o
+INSTMEM_SIZE=1024
+DATAMEM_SIZE=256
 
-%.inst.mif: %.S
-	@mips-linux-gnu-as -mips32 --gstabs -g -o $*.o.$$$$ $< && \
-	 mips-linux-gnu-objdump -d -S $*.o.$$$$ | ./genmif.py $@; \
-	 rm $*.o.$$$$
-
-%.data.mif: %.S
-	@mips-linux-gnu-as -mips32 --gstabs -g -o $*.o.$$$$ $< && \
-	 mips-linux-gnu-objcopy -j ".data" -O binary $*.o.$$$$ && \
-	 ./gendatamif.py $*.o.$$$$ $@; \
-	 rm $*.o.$$$$
-
-build-%: %.inst.mif %.data.mif
-	@exit 0
+build-%: compiler.py memory.py assembler.py mifutil.py
+	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) $*.data.mif $(DATAMEM_SIZE) $*.S
 
 clean:
 	rm -f *.mif

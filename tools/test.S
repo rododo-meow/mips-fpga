@@ -1,5 +1,4 @@
 .text
-.set noat
 .org 0x0
 
 main:   ori $4, $0, data                  # address of data[0]
