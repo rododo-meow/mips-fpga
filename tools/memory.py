@@ -6,6 +6,7 @@ class Memory:
             self.auto = True
             self.buf = {}
         else:
+            self.auto = False
             self.buf = [0] * (size / unit)
         self.size = size
         self.unit = unit
@@ -16,10 +17,9 @@ class Memory:
         if ((addr % self.unit != 0) or (len(bytes) % self.unit != 0)) and comment != None:
             raise "Can't set comment for unaligned data"
         elif comment != None:
-            for i in xrange(addr / self.unit, (addr + len(bytes)) / self.unit):
-                if self.auto and not self.buf.has_key(i):
-                    self.buf[i] = [ {}, None ]
-                self.buf[i][1] = comment
+            if self.auto and not self.buf.has_key(addr / self.unit):
+                self.buf[addr / self.unit] = [ {}, None ]
+            self.buf[addr / self.unit][1] = comment
         for b in bytes:
             if self.auto and not self.buf.has_key(addr / self.unit):
                 self.buf[addr / self.unit] = [ {}, None ]
@@ -35,16 +35,16 @@ class Memory:
             len = self.unit
         bytes = []
         if len == self.unit and addr % self.unit == 0:
-            if not self.buf.has_key(addr / self.unit):
+            if self.auto and not self.buf.has_key(addr / self.unit):
                 comment = None
             else:
                 comment = self.buf[addr / self.unit][1]
         else:
             comment = None
         for i in xrange(0, len):
-            if not self.buf.has_key(addr / self.unit):
+            if self.auto and not self.buf.has_key(addr / self.unit):
                 bytes = bytes + [0]
-            elif not self.buf[addr / self.unit][0].has_key(addr % self.unit):
+            elif self.auto and not self.buf[addr / self.unit][0].has_key(addr % self.unit):
                 bytes = bytes + [0]
             else:
                 bytes = bytes + [ self.buf[addr / self.unit][0][addr % self.unit] ]
@@ -53,11 +53,11 @@ class Memory:
 
     def fill(self, another):
         for i in xrange(0, self.size):
-            l = self.get(i)
+            l = self.get(i, 1)
             if l[1] == None or another.unit > self.unit:
-                another.set(i, l[0][0])
+                another.set(i, l[0])
             else:
-                another.set(i, l[0][0], l[1])
+                another.set(i, l[0], l[1])
 
     def dump(self):
         for i in xrange(0, self.size, self.unit):

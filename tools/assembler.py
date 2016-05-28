@@ -66,7 +66,6 @@ def _Assembler__applyTemplate(templates, s):
             s = tmp
         if converge:
             break
-    print s
     return s
 
 _Assembler__y86Temp = {
@@ -493,11 +492,9 @@ class Assembler:
     def __asm_IssueY86(self):
         self.mode = "Y86"
 
-__all__ = []
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print >>sys.stderr, "Usage: %s <mips.S>" % (sys.argv[0])
+        print >>sys.stderr, "Usage: %s <xxx.S>" % (sys.argv[0])
         sys.exit(1)
     assembler = Assembler()
     assembler.compile(sys.argv[1])

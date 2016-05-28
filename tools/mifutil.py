@@ -15,8 +15,6 @@ class BadMIFParameter:
 class MifFile:
     def __init__(self, filename):
         self.filename = filename
-        self.read()
-        self.write_back()
 
     def read(self):
         try:
@@ -26,7 +24,7 @@ class MifFile:
         except IOError:
             pass
 
-    def init(size, unit):
+    def init(self, size, unit):
         self.memory = Memory(size, unit)
 
     def __read_header(self, f):
@@ -96,7 +94,7 @@ class MifFile:
 
     def write_back(self):
         try:
-            with open("b", "w") as f:
+            with open(self.filename, "w") as f:
                 self.__print_header(f)
                 self.__print_content(f)
         except IOError:
