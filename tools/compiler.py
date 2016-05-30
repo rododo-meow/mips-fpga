@@ -11,7 +11,7 @@ def main():
     instmif = MifFile(sys.argv[1])
     instmif.init(int(sys.argv[2]), 1)
     datamif = MifFile(sys.argv[3])
-    datamif.init(int(sys.argv[4]), 1)
+    datamif.init(int(sys.argv[4]), 4)
     assembler = Assembler()
     for filename in sys.argv[5:]:
         assembler.compile(filename)

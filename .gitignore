@@ -2,6 +2,7 @@
 *.sof
 *.swp
 ~*
+*.pyc
 /sc_computer.asm.rpt
 /sc_computer.done
 /sc_computer.fit.rpt
@@ -21,6 +22,7 @@
 /sc_computer_nativelink_simulation.rpt
 /PLLJ_PLLSPE_INFO.txt
 /c5_pin_model_dump.txt
+/sc_computer.pin
 /db/
 /greybox_tmp/
 /hps.sopcinfo
@@ -40,3 +42,5 @@
 /pll_sim/
 /.qsys_edit/
 /source/greybox_tmp/
+/modelsim/
+!/modelsim/testbench.mpf

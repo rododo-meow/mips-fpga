@@ -180,6 +180,7 @@ class Assembler:
         self.y86_ins += self.__make("y86", "N", "Ret")
         self.y86_ins += self.__make("y86", "R", "Pushl")
         self.y86_ins += self.__make("y86", "R", "Popl")
+        self.y86_ins += self.__make("y86", "I", "JMIPS")
         self.asm_ins += self.__make("asm", "0", "Text")
         self.asm_ins += self.__make("asm", "I", "Org")
         self.asm_ins += self.__make("asm", "0", "Data")
@@ -274,6 +275,15 @@ class Assembler:
                     print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
                     sys.exit(1)
                 r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
+            elif r[0] == "Y86_MIPS_ADDR":
+                if r[2][0] == "$":
+                    r[2] = r[2][1:]
+                target = eval(r[2], self.label)
+                if target > 0xffffffff or target < -0x100000000:
+                    print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
+                if target & 0x3 != 0:
+                    print >>sys.stderr, "Error: direct jump to mips code '%s' not aligned" % (r[2])
+                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
             else:
                 raise BaseException("Unknown relocation type '%s'" % (r[0]))
 
@@ -464,6 +474,9 @@ class Assembler:
         self.__issue(__make_y86_ins("2", 0xa0, ra, 0xf), comment)
     def __y86_IssuePopl(self, ra, comment):
         self.__issue(__make_y86_ins("2", 0xb0, ra, 0xf), comment)
+    def __y86_IssueJMIPS(self, Dest, comment):
+        addr = self.__issue(__make_y86_ins("5", 0xc0, 0), comment)
+        self.reloc += __make_reloc("Y86_MIPS_ADDR", ( addr[0], addr[1] + 1 ), Dest)
 
     def __asm_generate0(name):
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+(#.*)?$")
