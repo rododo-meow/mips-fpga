@@ -162,6 +162,7 @@ class Assembler:
         self.mips_ins += self.__make("mips", "L", "Lui")
         self.mips_ins += self.__make("mips", "J", "J")
         self.mips_ins += self.__make("mips", "J", "Jal")
+        self.mips_ins += self.__make("mips", "J", "JY86")
         self.y86_ins += self.__make("y86", "N", "Halt")
         self.y86_ins += self.__make("y86", "N", "Nop")
         self.y86_ins += self.__make("y86", "RR", "Rrmovl")
@@ -250,11 +251,11 @@ class Assembler:
                 if target & 0x3 != 0:
                     print >>sys.stderr, "Error: direct jump to '%s' not aligned" % (r[2])
                     sys.exit(1)
-                target = target >> 2
                 if (target >> 28) & 0xf != (r[1][1] >> 28) & 0xf:
                     print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
                     sys.exit(1)
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, self.instmem.get(r[1][1], 1)[0][0] & 0xc0 | ((target >> 16) & 0x2f) ])
+                target = target >> 2
+                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
             elif r[0] == "WORD":
                 target = eval(r[2], self.label)
                 if target > 0xffffffff or target < -0x100000000:
@@ -267,6 +268,12 @@ class Assembler:
                 if target > 0xffffffff or target < -0x100000000:
                     print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
                 r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
+            elif r[0] == "MIPS_Y86_ADDR":
+                target = eval(r[2], self.label)
+                if (target >> 26) & 0x3f != (r[1][1] >> 26) & 0x3f:
+                    print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
+                    sys.exit(1)
+                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
             else:
                 raise BaseException("Unknown relocation type '%s'" % (r[0]))
 
@@ -369,6 +376,10 @@ class Assembler:
         myaddr = self.__issue(__make_mips_ins("J", 0x03, 0), comment)
         self.reloc += __make_reloc("MIPS_ADDR", myaddr, addr)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
+    def __mips_IssueJY86(self, addr, comment):
+        myaddr = self.__issue(__make_mips_ins("J", 0x3a, 0), comment)
+        self.reloc += __make_reloc("MIPS_Y86_ADDR", myaddr, addr)
+        self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
 
     def __y86_generateN(name):
         return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s*%%COMMENT?$"))
@@ -383,7 +394,7 @@ class Assembler:
     def __y86_resolvIR(func):
         return lambda match: func(match.group(1), __resolvY86Reg(match.group(2)), __cut_tail_newline(match.group(0)))
     def __y86_generateRIR(name):
-        return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s+(%%REG)\s*,\s*(%%IMM)?\s*\(\s*%%REG\s*\)\s*%%COMMENT?$"))
+        return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s+(%%REG)\s*,\s*(%%IMM)?\s*\(\s*(%%REG)\s*\)\s*%%COMMENT?$"))
     def __y86_resolvRIR(func):
         return lambda match: \
             func(__resolvY86Reg(match.group(1)), match.group(2), __resolvY86Reg(match.group(3)), __cut_tail_newline(match.group(0))) \
@@ -399,7 +410,7 @@ class Assembler:
     def __y86_generateI(name):
         return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s+(%%IMM)\s*%%COMMENT?$"))
     def __y86_resolvI(func):
-        return lambda match: func(m.group(1), __cut_tail_newline(match.group(0)))
+        return lambda match: func(match.group(1), __cut_tail_newline(match.group(0)))
     def __y86_generateIC(name):
         return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"(%%COND)\s+(%%IMM)\s*%%COMMENT?$"))
     def __y86_resolvIC(func):

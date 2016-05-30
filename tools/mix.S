@@ -35,7 +35,10 @@ shift:  addi $5, $0, -1                   # $5 = ffffffff
         sll $8, $8, 16                    # <<16 = 80000000
         sra $8, $8, 16                    # >>16 = ffff8000 (arith)
         srl $8, $8, 15                    # >>15 = 0001ffff (logic)
-finish: j finish                          # dead loop
+finish: lui $1, 0xf300                    # load KEY IO addr
+wait:   lw $2, 4($1)
+        bne $2, $0, wait                  # loop until KEY1 is pressed
+        jy86 y86main                      # jump to y86 code
 sum:    add $8, $0, $0                    # sum
 loop:   lw $9, 0($4)                      # load data
         addi $4, $4, 4                    # address + 4
@@ -46,25 +49,48 @@ loop:   lw $9, 0($4)                      # load data
         jr $ra                            # return
 
 .y86
-Sum: pushl %ebp
-rrmovl %esp, %ebp
-mrmovl 8(%ebp), %ecx # ecx = Start
-mrmovl 12(%ebp), %edx # edx = Count
-xorl %eax,%eax # sum = 0
-andl %edx,%edx # test
-je End
-Loop:
-mrmovl (%ecx),%esi # get *Start
-addl %esi, %eax # add to sum
-irmovl $4, %ebx
-addl %ebx,%ecx # Start++
-irmovl $-1,%ebx
-addl %ebx,%edx # Count--
-jne Loop # Stop until Count == 0
-End:
-rrmovl %ebp, %esp
-popl %ebp
-ret
+y86entry: irmovl $0, %eax
+          rrmovl %eax, %ebx
+          rrmovl %eax, %ecx
+          rrmovl %eax, %edx
+          irmovl stack, %esp
+          irmovl stack, %ebp
+          call y86main
+dead:     jmp dead
+
+y86main:  pushl %ebp
+          rrmovl %ebp, %esp
+          irmovl data2_end - data2, %eax
+          pushl %eax
+          irmovl data2, %edx
+          pushl %edx
+          call Sum
+          call Display
+          rrmovl %ebp, %esp
+          popl %ebp
+          ret
+
+Sum:      pushl %ebp
+          rrmovl %esp, %ebp
+          mrmovl 8(%ebp), %ecx # ecx = Start
+          mrmovl 12(%ebp), %edx # edx = Count
+          xorl %eax,%eax # sum = 0
+          andl %edx,%edx # test
+          je End
+Loop:     mrmovl (%ecx),%esi # get *Start
+          addl %esi, %eax # add to sum
+          irmovl $4, %ebx
+          addl %ebx,%ecx # Start++
+          irmovl $-1,%ebx
+          addl %ebx,%edx # Count--
+          jne Loop # Stop until Count == 0
+End:      rrmovl %ebp, %esp
+          popl %ebp
+          ret
+
+Display:  xorl %ebx, %ebx
+          rmmovl %eax, 0xf0000012(%ebx)
+          ret
 
 .data
 .org 0x50
@@ -74,3 +100,13 @@ data:
 	.word 0x79
 	.word 0x115
 data_end:
+data2:
+	.word 0x12
+	.word 0x18279
+	.word 0x123
+	.word 0xaad
+data2_end:
+
+stack_top:
+.org 0x100
+stack:
