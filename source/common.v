@@ -35,6 +35,7 @@
 `define Y86_OP_RET    4'h9
 `define Y86_OP_PUSHL  4'ha
 `define Y86_OP_POPL   4'hb
+`define Y86_OP_JMIPS  4'hc
 
 `define Y86_FUNC_ADD  4'h0
 `define Y86_FUNC_SUB  4'h1

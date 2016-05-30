@@ -39,7 +39,7 @@ initial begin
 	inst_size[9] = 1;
 	inst_size['ha] = 2;
 	inst_size['hb] = 2;
-	inst_size['hc] = 1;
+	inst_size['hc] = 5;
 	inst_size['hd] = 1;
 	inst_size['he] = 1;
 	inst_size['hf] = 1;

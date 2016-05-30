@@ -353,6 +353,11 @@ always @(*) begin
 			end
 			endcase
 		end
+		`Y86_OP_JMIPS: begin
+			_do_jmp = 1;
+			_target_pc = y86_Dest;
+			_target_mode = 0;
+		end
 		default: begin
 		end
 		endcase

@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+//`define DEBUG
+
 module testbench;
 localparam FREQ = 1000 * 1000;
 
@@ -38,6 +40,7 @@ always @(posedge clock)
 		
 // Debug print
 
+`ifdef DEBUG
 always @(negedge clock) #10 begin
 	if (resetn) begin
 		$display("Cycle %d.%d", cycle, clock);
@@ -82,15 +85,18 @@ always @(negedge clock) #10 begin
 		$display("");
 	end
 end
+`endif
 
 always @(negedge resetn)
 	$display("RESET");
 	
 always @(posedge resetn)
 	$display("RESET release");
-	
+
+`ifdef DEBUG
 always @(posedge clock)
 	$display("Clock");
+`endif
 	
 always @(SEG0, SEG1, SEG2, SEG3, SEG4, SEG5)
 	$display("SEGS: %07b %07b %07b %07b %07b %07b", SEG5, SEG4, SEG3, SEG2, SEG1, SEG0);
@@ -101,7 +107,7 @@ always @(LED)
 // Stop condition
 
 always @(posedge clock)
-	if (cycle == 300)
+	if (cycle == 800)
 		$stop;
 	
 // IO emulation
@@ -111,10 +117,10 @@ initial begin
 	SW <= 10'd3;
 end
 
-always @(cycle == 300)
+always @(cycle == 400)
 	KEY <= 4'b1101;
 	
-always @(cycle == 400)
+always @(cycle == 600)
 	KEY <= 4'b1111;
 
 endmodule
