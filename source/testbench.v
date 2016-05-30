@@ -96,7 +96,7 @@ always @(LED)
 // Stop condition
 
 always @(posedge clock)
-	if (resetn && ((cycle % 20) == 0))
+	if (resetn && ((cycle % 50) == 0))
 		$stop;
 	
 // IO emulation

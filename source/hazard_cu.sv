@@ -1,3 +1,4 @@
+`include "common.v"
 module hazard_cu(
 	output d_available,
 	input [4:0] d_ra, d_rb, e_rn, m_rn,
@@ -24,10 +25,10 @@ assign forward_d_q2[1] = forward_m_memout_to_d_q2;
 assign forward_d_q2[0] = forward_e_data_to_d_q2;
 
 wire forward_e_cond_to_d = (
-	d_jmp != translate_cu.JMP_NEVER && 
-	d_jmp != translate_cu.JMP_ALWAYS && 
-	d_jmp != translate_cu.JMP_MIPS_E &&
-	d_jmp != translate_cu.JMP_MIPS_NE &&
+	d_jmp != `JMP_NEVER && 
+	d_jmp != `JMP_ALWAYS && 
+	d_jmp != `JMP_MIPS_E &&
+	d_jmp != `JMP_MIPS_NE &&
 	e_setcond);
 assign d_available = (~forward_e_memout_to_d_q1) & (~forward_e_memout_to_d_q2) & (~forward_e_cond_to_d);
 

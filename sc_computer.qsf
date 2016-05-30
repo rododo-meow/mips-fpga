@@ -334,37 +334,6 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_R[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_R[7]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_SYNC_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to VGA_VS
-set_global_assignment -name SYSTEMVERILOG_FILE source/io_pio_input.sv
-set_global_assignment -name SYSTEMVERILOG_FILE source/regfile.sv
-set_global_assignment -name VERILOG_FILE source/io_pio_output.v
-set_global_assignment -name SDC_FILE sc_computer.sdc
-set_global_assignment -name VERILOG_FILE source/toplevel.v
-set_global_assignment -name VERILOG_FILE source/testbench.v
-set_global_assignment -name VERILOG_FILE source/segdriver.v
-set_global_assignment -name VERILOG_FILE source/sc_instmem.v
-set_global_assignment -name VERILOG_FILE source/sc_datamem.v
-set_global_assignment -name VERILOG_FILE source/sc_cu.v
-set_global_assignment -name VERILOG_FILE source/sc_cpu.v
-set_global_assignment -name VERILOG_FILE source/sc_computer.v
-set_global_assignment -name VERILOG_FILE source/mux4x32.v
-set_global_assignment -name VERILOG_FILE source/mux2x32.v
-set_global_assignment -name VERILOG_FILE source/mux2x5.v
-set_global_assignment -name VERILOG_FILE source/lpm_ram_dq_dram.v
-set_global_assignment -name VERILOG_FILE source/dff32.v
-set_global_assignment -name VERILOG_FILE source/alu.v
-set_global_assignment -name SIP_FILE pll.sip
-set_global_assignment -name SOURCE_FILE pll.cmp
-set_global_assignment -name QIP_FILE pll.qip
-set_global_assignment -name VERILOG_FILE pll.v -library pll
-set_global_assignment -name VERILOG_FILE source/sc_hub.v
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name VERILOG_FILE source/pipeline_reg.v
-set_global_assignment -name VERILOG_FILE source/pipeline_F.v
-set_global_assignment -name VERILOG_FILE source/pipeline_D.v
-set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_E.sv
-set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_M.sv
-set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_W.sv
-set_global_assignment -name SYSTEMVERILOG_FILE source/hazard_cu.sv
 set_instance_assignment -name D5_DELAY 2 -to HPS_DDR3_CK_P -tag __hps_sdram_p0
 set_instance_assignment -name D5_DELAY 2 -to HPS_DDR3_CK_N -tag __hps_sdram_p0
 set_instance_assignment -name PACKAGE_SKEW_COMPENSATION OFF -to HPS_DDR3_DQ[0] -tag __hps_sdram_p0
@@ -537,16 +506,48 @@ set_location_assignment PIN_AK29 -to GPIO_B[35]
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -entity ghrd_top -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -entity ghrd_top -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -entity ghrd_top -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -entity ghrd_top -section_id Top
+
+set_global_assignment -name QIP_FILE source/lpm_ram_dq_dram.qip
+set_global_assignment -name SYSTEMVERILOG_FILE source/io_pio_input.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/regfile.sv
+set_global_assignment -name VERILOG_FILE source/io_pio_output.v
+set_global_assignment -name SDC_FILE sc_computer.sdc
+set_global_assignment -name VERILOG_FILE source/toplevel.v
+set_global_assignment -name VERILOG_FILE source/testbench.v
+set_global_assignment -name VERILOG_FILE source/segdriver.v
+set_global_assignment -name VERILOG_FILE source/sc_instmem.v
+set_global_assignment -name VERILOG_FILE source/sc_datamem.v
+set_global_assignment -name VERILOG_FILE source/sc_cu.v
+set_global_assignment -name VERILOG_FILE source/sc_cpu.v
+set_global_assignment -name VERILOG_FILE source/sc_computer.v
+set_global_assignment -name VERILOG_FILE source/mux4x32.v
+set_global_assignment -name VERILOG_FILE source/mux2x32.v
+set_global_assignment -name VERILOG_FILE source/mux2x5.v
+set_global_assignment -name VERILOG_FILE source/dff32.v
+set_global_assignment -name VERILOG_FILE source/alu.v
+set_global_assignment -name SIP_FILE pll.sip
+set_global_assignment -name SOURCE_FILE pll.cmp
+set_global_assignment -name QIP_FILE pll.qip
+set_global_assignment -name VERILOG_FILE pll.v -library pll
+set_global_assignment -name VERILOG_FILE source/sc_hub.v
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name VERILOG_FILE source/pipeline_reg.v
+set_global_assignment -name VERILOG_FILE source/pipeline_F.v
+set_global_assignment -name VERILOG_FILE source/pipeline_D.v
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_E.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_M.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_W.sv
+set_global_assignment -name SYSTEMVERILOG_FILE source/hazard_cu.sv
 set_global_assignment -name QIP_FILE ip/altsource_probe/hps_reset.qip
 set_global_assignment -name VERILOG_FILE ip/altsource_probe/hps_reset.v
 set_global_assignment -name VERILOG_FILE ip/debounce/debounce.v
 set_global_assignment -name VERILOG_FILE ip/edge_detect/altera_edge_detector.v
 set_global_assignment -name SDC_FILE soc_system_timing.sdc
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -entity ghrd_top -section_id Top
 set_global_assignment -name SYSTEMVERILOG_FILE source/fetch_cu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_T.sv
-
 set_global_assignment -name SYSTEMVERILOG_FILE source/pipeline_cu.sv
 set_global_assignment -name QIP_FILE source/lpm_rom_irom.qip
 set_global_assignment -name SYSTEMVERILOG_FILE source/translate_cu.sv
+set_global_assignment -name VERILOG_FILE source/common.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

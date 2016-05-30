@@ -12,7 +12,7 @@ BEGIN
    5 : 00;
    6 : 05;
    7 : 20;
-   8 : 27; -- call:   jal sum                           # call function
+   8 : 2b; -- call:   jal sum                           # call function
    9 : 00;
    A : 00;
    B : 0c;
@@ -152,207 +152,207 @@ BEGIN
   91 : 43;
   92 : 08;
   93 : 00;
-  94 : 25; -- finish: j finish                          # dead loop
-  95 : 00;
-  96 : 00;
-  97 : 08;
-  98 : 00;
+  94 : 00; -- finish: lui $1, 0xf300                    # load KEY IO addr
+  95 : f3;
+  96 : 01;
+  97 : 3c;
+  98 : 04; -- wait:   lw $2, 4($1)
   99 : 00;
-  9A : 00;
-  9B : 00;
-  9C : 20; -- sum:    add $8, $0, $0                    # sum
-  9D : 40;
-  9E : 00;
-  9F : 00;
-  A0 : 00; -- loop:   lw $9, 0($4)                      # load data
+  9A : 22;
+  9B : 8c;
+  9C : fe; --         bne $2, $0, wait                  # loop until KEY1 is pressed
+  9D : ff;
+  9E : 40;
+  9F : 14;
+  A0 : 00;
   A1 : 00;
-  A2 : 89;
-  A3 : 8c;
-  A4 : 04; --         addi $4, $4, 4                    # address + 4
+  A2 : 00;
+  A3 : 00;
+  A4 : f6; --         jy86 y86main                      # jump to y86 code
   A5 : 00;
-  A6 : 84;
-  A7 : 20;
-  A8 : 20; --         add $8, $8, $9                    # sum
-  A9 : 40;
-  AA : 09;
-  AB : 01;
-  AC : ff; --         addi $5, $5, -1                   # counter - 1
-  AD : ff;
-  AE : a5;
-  AF : 20;
-  B0 : fb; --         bne $5, $0, loop                  # finish?
-  B1 : ff;
-  B2 : a0;
-  B3 : 14;
-  B4 : 00;
+  A6 : 00;
+  A7 : e8;
+  A8 : 00;
+  A9 : 00;
+  AA : 00;
+  AB : 00;
+  AC : 20; -- sum:    add $8, $0, $0                    # sum
+  AD : 40;
+  AE : 00;
+  AF : 00;
+  B0 : 00; -- loop:   lw $9, 0($4)                      # load data
+  B1 : 00;
+  B2 : 89;
+  B3 : 8c;
+  B4 : 04; --         addi $4, $4, 4                    # address + 4
   B5 : 00;
-  B6 : 00;
-  B7 : 00;
-  B8 : 00; --         sll $2, $8, 0                     # move result to $v0
-  B9 : 10;
-  BA : 08;
-  BB : 00;
-  BC : 08; --         jr $ra                            # return
-  BD : 00;
-  BE : e0;
-  BF : 03;
-  C0 : 00;
-  C1 : 00;
-  C2 : 00;
-  C3 : 00;
-  C4 : a0; -- Sum: pushl %ebp
-  C5 : 5f;
-  C6 : 20; -- rrmovl %esp, %ebp
-  C7 : 45;
-  C8 : 50; -- mrmovl 8(%ebp), %ecx # ecx = Start
-  C9 : 15;
+  B6 : 84;
+  B7 : 20;
+  B8 : 20; --         add $8, $8, $9                    # sum
+  B9 : 40;
+  BA : 09;
+  BB : 01;
+  BC : ff; --         addi $5, $5, -1                   # counter - 1
+  BD : ff;
+  BE : a5;
+  BF : 20;
+  C0 : fb; --         bne $5, $0, loop                  # finish?
+  C1 : ff;
+  C2 : a0;
+  C3 : 14;
+  C4 : 00;
+  C5 : 00;
+  C6 : 00;
+  C7 : 00;
+  C8 : 00; --         sll $2, $8, 0                     # move result to $v0
+  C9 : 10;
   CA : 08;
   CB : 00;
-  CC : 00;
+  CC : 08; --         jr $ra                            # return
   CD : 00;
-  CE : 50; -- mrmovl 12(%ebp), %edx # edx = Count
-  CF : 25;
-  D0 : 0c;
+  CE : e0;
+  CF : 03;
+  D0 : 00;
   D1 : 00;
   D2 : 00;
   D3 : 00;
-  D4 : 63; -- xorl %eax,%eax # sum = 0
-  D5 : 00;
-  D6 : 62; -- andl %edx,%edx # test
-  D7 : 22;
-  D8 : 73; -- je End
-  D9 : fa;
-  DA : 00;
-  DB : 00;
-  DC : 00;
-  DD : 50; -- mrmovl (%ecx),%esi # get *Start
-  DE : 61;
-  DF : 00;
-  E0 : 00;
-  E1 : 00;
+  D4 : 30; -- y86entry: irmovl $0, %eax
+  D5 : f0;
+  D6 : 00;
+  D7 : 00;
+  D8 : 00;
+  D9 : 00;
+  DA : 20; --           rrmovl %eax, %ebx
+  DB : 03;
+  DC : 20; --           rrmovl %eax, %ecx
+  DD : 01;
+  DE : 20; --           rrmovl %eax, %edx
+  DF : 02;
+  E0 : 30; --           irmovl stack, %esp
+  E1 : f4;
   E2 : 00;
-  E3 : 60; -- addl %esi, %eax # add to sum
-  E4 : 60;
-  E5 : 30; -- irmovl $4, %ebx
-  E6 : f3;
-  E7 : 04;
+  E3 : 01;
+  E4 : 00;
+  E5 : 00;
+  E6 : 30; --           irmovl stack, %ebp
+  E7 : f5;
   E8 : 00;
-  E9 : 00;
+  E9 : 01;
   EA : 00;
-  EB : 60; -- addl %ebx,%ecx # Start++
-  EC : 31;
-  ED : 30; -- irmovl $-1,%ebx
-  EE : f3;
-  EF : ff;
-  F0 : ff;
-  F1 : ff;
-  F2 : ff;
-  F3 : 60; -- addl %ebx,%edx # Count--
-  F4 : 32;
-  F5 : 74; -- jne Loop # Stop until Count == 0
-  F6 : dd;
-  F7 : 00;
-  F8 : 00;
-  F9 : 00;
-  FA : 20; -- rrmovl %ebp, %esp
-  FB : 54;
-  FC : b0; -- popl %ebp
-  FD : 5f;
-  FE : 90; -- ret
+  EB : 00;
+  EC : 80; --           call y86main
+  ED : f6;
+  EE : 00;
+  EF : 00;
+  F0 : 00;
+  F1 : 70; -- dead:     jmp dead
+  F2 : f1;
+  F3 : 00;
+  F4 : 00;
+  F5 : 00;
+  F6 : a0; -- y86main:  pushl %ebp
+  F7 : 5f;
+  F8 : 20; --           rrmovl %ebp, %esp
+  F9 : 54;
+  FA : 30; --           irmovl data2_end - data2, %eax
+  FB : f0;
+  FC : 10;
+  FD : 00;
+  FE : 00;
   FF : 00;
- 100 : 00;
- 101 : 00;
- 102 : 00;
- 103 : 00;
- 104 : 00;
+ 100 : a0; --           pushl %eax
+ 101 : 0f;
+ 102 : 30; --           irmovl data2, %edx
+ 103 : f2;
+ 104 : 60;
  105 : 00;
  106 : 00;
  107 : 00;
- 108 : 00;
- 109 : 00;
- 10A : 00;
- 10B : 00;
- 10C : 00;
+ 108 : a0; --           pushl %edx
+ 109 : 2f;
+ 10A : 80; --           call Sum
+ 10B : 19;
+ 10C : 01;
  10D : 00;
  10E : 00;
- 10F : 00;
- 110 : 00;
- 111 : 00;
+ 10F : 80; --           call Display
+ 110 : 54;
+ 111 : 01;
  112 : 00;
  113 : 00;
- 114 : 00;
- 115 : 00;
- 116 : 00;
- 117 : 00;
- 118 : 00;
- 119 : 00;
- 11A : 00;
- 11B : 00;
- 11C : 00;
- 11D : 00;
- 11E : 00;
- 11F : 00;
+ 114 : 20; --           rrmovl %ebp, %esp
+ 115 : 54;
+ 116 : b0; --           popl %ebp
+ 117 : 5f;
+ 118 : 90; --           ret
+ 119 : a0; -- Sum:      pushl %ebp
+ 11A : 5f;
+ 11B : 20; --           rrmovl %esp, %ebp
+ 11C : 45;
+ 11D : 50; --           mrmovl 8(%ebp), %ecx # ecx = Start
+ 11E : 15;
+ 11F : 08;
  120 : 00;
  121 : 00;
  122 : 00;
- 123 : 00;
- 124 : 00;
- 125 : 00;
+ 123 : 50; --           mrmovl 12(%ebp), %edx # edx = Count
+ 124 : 25;
+ 125 : 0c;
  126 : 00;
  127 : 00;
  128 : 00;
- 129 : 00;
+ 129 : 63; --           xorl %eax,%eax # sum = 0
  12A : 00;
- 12B : 00;
- 12C : 00;
- 12D : 00;
- 12E : 00;
- 12F : 00;
+ 12B : 62; --           andl %edx,%edx # test
+ 12C : 22;
+ 12D : 73; --           je End
+ 12E : 4f;
+ 12F : 01;
  130 : 00;
  131 : 00;
- 132 : 00;
- 133 : 00;
+ 132 : 50; -- Loop:     mrmovl (%ecx),%esi # get *Start
+ 133 : 61;
  134 : 00;
  135 : 00;
  136 : 00;
  137 : 00;
- 138 : 00;
- 139 : 00;
- 13A : 00;
- 13B : 00;
- 13C : 00;
+ 138 : 60; --           addl %esi, %eax # add to sum
+ 139 : 60;
+ 13A : 30; --           irmovl $4, %ebx
+ 13B : f3;
+ 13C : 04;
  13D : 00;
  13E : 00;
  13F : 00;
- 140 : 00;
- 141 : 00;
- 142 : 00;
- 143 : 00;
- 144 : 00;
- 145 : 00;
- 146 : 00;
- 147 : 00;
- 148 : 00;
- 149 : 00;
- 14A : 00;
- 14B : 00;
- 14C : 00;
+ 140 : 60; --           addl %ebx,%ecx # Start++
+ 141 : 31;
+ 142 : 30; --           irmovl $-1,%ebx
+ 143 : f3;
+ 144 : ff;
+ 145 : ff;
+ 146 : ff;
+ 147 : ff;
+ 148 : 60; --           addl %ebx,%edx # Count--
+ 149 : 32;
+ 14A : 74; --           jne Loop # Stop until Count == 0
+ 14B : 32;
+ 14C : 01;
  14D : 00;
  14E : 00;
- 14F : 00;
- 150 : 00;
- 151 : 00;
- 152 : 00;
- 153 : 00;
- 154 : 00;
- 155 : 00;
- 156 : 00;
- 157 : 00;
- 158 : 00;
+ 14F : 20; -- End:      rrmovl %ebp, %esp
+ 150 : 54;
+ 151 : b0; --           popl %ebp
+ 152 : 5f;
+ 153 : 90; --           ret
+ 154 : 63; -- Display:  xorl %ebx, %ebx
+ 155 : 33;
+ 156 : 40; --           rmmovl %eax, 0xf0000012(%ebx)
+ 157 : 03;
+ 158 : 12;
  159 : 00;
  15A : 00;
- 15B : 00;
- 15C : 00;
+ 15B : f0;
+ 15C : 90; --           ret
  15D : 00;
  15E : 00;
  15F : 00;

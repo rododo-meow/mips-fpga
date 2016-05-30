@@ -1,3 +1,4 @@
+`include "common.v"
 module sc_cpu (clock,resetn,mem_dataout,wmem,mem_addr,mem_datain,instmem_addr,instmem_dataout);
 input [31:0] mem_dataout;
 input [7:0] instmem_dataout;
@@ -130,23 +131,23 @@ always @(*) begin
 		_d_do_jmp <= 0;
 	else begin
 		case (d_jmp)
-		translate_cu.JMP_NEVER: _d_do_jmp <= 0;
-		translate_cu.JMP_ALWAYS: _d_do_jmp <= (d_target_sel == translate_cu.TARGET_IMM) || (d_target_sel == translate_cu.TARGET_Q1);
-		translate_cu.JMP_E: _d_do_jmp <= cc[0];
-		translate_cu.JMP_LE: _d_do_jmp <= (cc[1] ^ cc[2]) | cc[0];
-		translate_cu.JMP_G: _d_do_jmp <= ~((cc[1] ^ cc[2]) | cc[0]);
-		translate_cu.JMP_GE: _d_do_jmp <= ~(cc[1] ^ cc[2]);
-		translate_cu.JMP_NE: _d_do_jmp <= ~cc[0];
-		translate_cu.JMP_L: _d_do_jmp <= cc[1] ^ cc[2];
-		translate_cu.JMP_MIPS_E: _d_do_jmp <= _d_q1 == _d_q2;
-		translate_cu.JMP_MIPS_NE: _d_do_jmp <= _d_q1 != _d_q2;
+		`JMP_NEVER: _d_do_jmp <= 0;
+		`JMP_ALWAYS: _d_do_jmp <= (d_target_sel == `TARGET_IMM) || (d_target_sel == `TARGET_Q1);
+		`JMP_E: _d_do_jmp <= cc[0];
+		`JMP_LE: _d_do_jmp <= (cc[1] ^ cc[2]) | cc[0];
+		`JMP_G: _d_do_jmp <= ~((cc[1] ^ cc[2]) | cc[0]);
+		`JMP_GE: _d_do_jmp <= ~(cc[1] ^ cc[2]);
+		`JMP_NE: _d_do_jmp <= ~cc[0];
+		`JMP_L: _d_do_jmp <= cc[1] ^ cc[2];
+		`JMP_MIPS_E: _d_do_jmp <= _d_q1 == _d_q2;
+		`JMP_MIPS_NE: _d_do_jmp <= _d_q1 != _d_q2;
 		default: _d_do_jmp <= 0;
 		endcase
 	end
 end
 
-assign d_do_jmp_in_m = (d_target_sel == translate_cu.TARGET_MEM) && (d_jmp == translate_cu.JMP_ALWAYS);
-assign d_target_pc = (d_target_sel == translate_cu.TARGET_IMM) ? d_imm : _d_q1;
+assign d_do_jmp_in_m = (d_target_sel == `TARGET_MEM) && (d_jmp == `JMP_ALWAYS);
+assign d_target_pc = (d_target_sel == `TARGET_IMM) ? d_imm : _d_q1;
 assign d_target_mode = 0;
 
 hazard_cu hazard_cu(
@@ -220,8 +221,8 @@ always @(posedge clock, negedge resetn) begin
 		cc[0] <= e_aluout == 32'b0;
 		cc[1] <= e_aluout[31];
 		case (e_aluc)
-		translate_cu.ALU_ADD: cc[2] <= ~(e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
-		translate_cu.ALU_SUB: cc[2] <= (e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
+		`ALU_ADD: cc[2] <= ~(e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
+		`ALU_SUB: cc[2] <= (e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
 		default: cc[2] <= 0;
 		endcase
 	end
