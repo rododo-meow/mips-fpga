@@ -1,3 +1,4 @@
+`include "common.v"
 module alu (a,b,aluc,s);
    input [31:0] a,b;
    input [3:0] aluc;
@@ -5,15 +6,16 @@ module alu (a,b,aluc,s);
    reg [31:0] s;
    always @ (a or b or aluc) 
       begin                                   // event
-         casex (aluc)
-             4'bx000: s = a + b;              //x000 ADD
-             4'bx100: s = a - b;              //x100 SUB
-             4'bx001: s = a & b;              //x001 AND
-             4'bx101: s = a | b;              //x101 OR
-             4'bx010: s = a ^ b;              //x010 XOR        
-             4'b0011: s = a << b;             //0011 SLL: rd <- (rt << sa)
-             4'b0111: s = a >> b;             //0111 SRL: rd <- (rt >> sa) (logical)
-             4'b1111: s = $signed(a) >>> b;   //1111 SRA: rd <- (rt >> sa) (arithmetic)
+         case (aluc)
+             `ALU_ADD:  s = a + b;              //x000 ADD
+             `ALU_SUB:  s = a - b;              //x100 SUB
+             `ALU_AND:  s = a & b;              //x001 AND
+             `ALU_OR:   s = a | b;              //x101 OR
+             `ALU_XOR:  s = a ^ b;              //x010 XOR        
+             `ALU_SLL:  s = a << b;             //0011 SLL: rd <- (rt << sa)
+             `ALU_SRL:  s = a >> b;             //0111 SRL: rd <- (rt >> sa) (logical)
+             `ALU_SRA:  s = $signed(a) >>> b;   //1111 SRA: rd <- (rt >> sa) (arithmetic)
+				 `ALU_SUB4: s = a - 4;
              default: s = 0;
          endcase       
       end      

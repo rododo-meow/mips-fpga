@@ -3,13 +3,13 @@ module pipeline_D(
 	input [31:0] dbg_t_pc, t_imm,
 	input [3:0] t_aluc, t_jmp,
 	input [4:0] t_ra, t_rb, t_rn,
-	input t_m2reg, t_wreg, t_wmem, t_useimm, t_need_ra, t_need_rb, t_setcond,
+	input t_m2reg, t_wreg, t_wmem, t_useimm, t_need_ra, t_need_rb, t_setcond, t_imm2m, t_alua2memaddr, t_mode,
 	input [47:0] dbg_t_inst,
 	input [1:0] t_target_sel,
 	output [31:0] dbg_d_pc, d_imm,
 	output [3:0] d_aluc, d_jmp,
 	output [4:0] d_ra, d_rb, d_rn, 
-	output d_m2reg, d_wreg, d_wmem, d_useimm, d_need_ra, d_need_rb, d_setcond,
+	output d_m2reg, d_wreg, d_wmem, d_useimm, d_need_ra, d_need_rb, d_setcond, d_imm2m, d_alua2memaddr, d_mode,
 	output [47:0] dbg_d_inst,
 	output [1:0] d_target_sel);
 
@@ -23,6 +23,33 @@ pipeline_reg #(
 	.bubble(d_bubble),
 	.d(dbg_t_inst),
 	.q(dbg_d_inst)
+);
+
+pipeline_reg D_mode(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(d_stall),
+	.bubble(d_bubble),
+	.d(t_mode),
+	.q(d_mode)
+);
+
+pipeline_reg D_alua2memaddr(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(d_stall),
+	.bubble(d_bubble),
+	.d(t_alua2memaddr),
+	.q(d_alua2memaddr)
+);
+
+pipeline_reg D_imm2m(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(d_stall),
+	.bubble(d_bubble),
+	.d(t_imm2m),
+	.q(d_imm2m)
 );
 
 pipeline_reg #(

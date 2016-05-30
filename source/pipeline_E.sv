@@ -1,16 +1,45 @@
 module pipeline_E(
 	input clk, resetn, e_stall, e_bubble,
-	input d_wreg, d_m2reg, d_wmem, d_setcond, d_do_jmp_in_m, d_mode,
+	input d_wreg, d_m2reg, d_wmem, d_setcond, d_do_jmp_in_m, d_mode, d_imm2m, d_alua2memaddr,
 	input [3:0] d_aluc, 
-	input [31:0] d_alua, d_alub, d_data, dbg_d_pc,
+	input [31:0] d_alua, d_alub, d_q2, dbg_d_pc, d_imm,
 	input [47:0] dbg_d_inst,
 	input [4:0] d_rn,
-	output e_wreg, e_m2reg, e_wmem, e_setcond, e_do_jmp_in_m, e_mode,
+	output e_wreg, e_m2reg, e_wmem, e_setcond, e_do_jmp_in_m, e_mode, e_imm2m, e_alua2memaddr,
 	output [3:0] e_aluc, 
-	output [31:0] e_alua, e_alub, e_data, dbg_e_pc,
+	output [31:0] e_alua, e_alub, e_q2, dbg_e_pc, e_imm,
 	output [47:0] dbg_e_inst,
 	output [4:0] e_rn);
 	
+pipeline_reg #(
+	.WIDTH(32)
+) E_imm(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_imm),
+	.q(e_imm)
+);
+
+pipeline_reg E_alua2memaddr(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_alua2memaddr),
+	.q(e_alua2memaddr)
+);
+
+pipeline_reg E_imm2m(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_imm2m),
+	.q(e_imm2m)
+);
+
 pipeline_reg E_mode(
 	.clk(clk),
 	.resetn(resetn),
@@ -108,13 +137,13 @@ pipeline_reg #(
 
 pipeline_reg #(
 	.WIDTH(32)
-) E_data(
+) E_q2(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(e_stall),
 	.bubble(e_bubble),
-	.d(d_data),
-	.q(e_data)
+	.d(d_q2),
+	.q(e_q2)
 );
 
 pipeline_reg #(

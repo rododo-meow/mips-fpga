@@ -45,8 +45,12 @@ always @(negedge clock) #10 begin
 		$display("\tf_mode: %b", computer.cpu.f_mode);
 		$display("\tf_pc: 0x%08x, f_next_inst_pc: 0x%08x", computer.cpu.f_pc, computer.cpu.f_next_inst_pc);
 		$display("\tpc 0x%08x, instmem_dataout: 0x%02x, f_inst: 0x%012x", computer.instmem_addr, computer.cpu.instmem_dataout, computer.cpu.f_inst);
+		if (computer.cpu.t_do_jmp == 1)
+			$display("\tt_do_jmp: %b, t_target_pc: 0x%08x, t_target_mode: %b", computer.cpu.t_do_jmp, computer.cpu.t_target_pc, computer.cpu.t_target_mode);
 		if (computer.cpu.d_do_jmp == 1)
 			$display("\td_do_jmp: %b, d_target_pc: 0x%08x, d_target_mode: %b", computer.cpu.d_do_jmp, computer.cpu.d_target_pc, computer.cpu.d_target_mode);
+		if (computer.cpu.m_do_jmp == 1)
+			$display("\tm_do_jmp: %b, m_target_pc: 0x%08x, m_target_mode: %b", computer.cpu.m_do_jmp, computer.cpu.m_target_pc, computer.cpu.m_target_mode);
 		$display("\t=======================");
 		$display("\tt_stall: %b, t_bubble: %b, t_available: %b, t_output %b", computer.cpu.t_stall, computer.cpu.t_bubble, computer.cpu.t_available, computer.cpu.t_output);
 		$display("\tt_mode: %b, t_pc: 0x%08x, t_next_inst_pc: 0x%08x", computer.cpu.t_mode, computer.cpu.dbg_t_pc, computer.cpu.t_next_inst_pc);
@@ -62,14 +66,15 @@ always @(negedge clock) #10 begin
 		$display("\t=======================");
 		$display("\te_stall: %b, e_bubble: %b, e_available: %b, e_output %b", computer.cpu.e_stall, computer.cpu.e_bubble, computer.cpu.e_available, computer.cpu.e_output);
 		$display("\te_pc: 0x%08x, e_inst: 0x%012x", computer.cpu.dbg_e_pc, computer.cpu.dbg_e_inst);
-		$display("\te_aluout: 0x%08x, e_data: 0x%08x, e_rn: %d", computer.cpu.e_aluout, computer.cpu.e_data, computer.cpu.e_rn);
+		$display("\te_aluout: 0x%08x, e_memin: 0x%08x, e_rn: %d", computer.cpu.e_aluout, computer.cpu.e_memin, computer.cpu.e_rn);
+		$display("\tZF: %b, SF: %b, OF: %b", computer.cpu.cc[0], computer.cpu.cc[1], computer.cpu.cc[2]);
 		$display("\t=======================");
 		$display("\tm_stall: %b, m_bubble: %b, m_available: %b, m_output %b", computer.cpu.m_stall, computer.cpu.m_bubble, computer.cpu.m_available, computer.cpu.m_output);
 		$display("\tm_pc: 0x%08x, m_inst: 0x%012x", computer.cpu.dbg_m_pc, computer.cpu.dbg_m_inst);
-		if (computer.cpu.m_m2reg == 1)
-			$display("\tm_addr: 0x%08x, m_memout: 0x%08x", computer.cpu.m_aluout, computer.cpu.m_memout);
+		if (computer.cpu.m_m2reg == 1 || computer.cpu.m_do_jmp == 1)
+			$display("\tm_addr: 0x%08x, m_memout: 0x%08x", computer.cpu.m_memaddr, computer.cpu.m_memout);
 		else if (computer.cpu.m_wmem == 1)
-			$display("\tm_addr: 0x%08x, m_memin: 0x%08x", computer.cpu.m_aluout, computer.cpu.m_data);
+			$display("\tm_addr: 0x%08x, m_memin: 0x%08x", computer.cpu.m_memaddr, computer.cpu.m_memin);
 		$display("\t=======================");
 		$display("\tw_stall: %b, w_bubble: %b, w_available: %b, w_output %b", computer.cpu.w_stall, computer.cpu.w_bubble, computer.cpu.w_available, computer.cpu.w_output);
 		$display("\tw_pc: 0x%08x, w_inst: 0x%012x", computer.cpu.dbg_w_pc, computer.cpu.dbg_w_inst);
@@ -96,7 +101,7 @@ always @(LED)
 // Stop condition
 
 always @(posedge clock)
-	if (resetn && ((cycle % 50) == 0))
+	if (cycle == 300)
 		$stop;
 	
 // IO emulation
@@ -106,19 +111,10 @@ initial begin
 	SW <= 10'd3;
 end
 
-always @(cycle == 30)
+always @(cycle == 300)
 	KEY <= 4'b1101;
 	
-always @(cycle == 50)
-	KEY <= 4'b1111;
-	
-always @(cycle == 70)
-	SW <= 10'd5;
-	
-always @(cycle == 80)
-	KEY <= 4'b1101;
-	
-always @(cycle == 90)
+always @(cycle == 400)
 	KEY <= 4'b1111;
 
 endmodule

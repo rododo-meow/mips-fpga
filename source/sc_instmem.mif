@@ -168,7 +168,7 @@ BEGIN
   A1 : 00;
   A2 : 00;
   A3 : 00;
-  A4 : f6; --         jy86 y86main                      # jump to y86 code
+  A4 : d4; --         jy86 y86entry                     # jump to y86 code
   A5 : 00;
   A6 : 00;
   A7 : e8;
@@ -252,11 +252,11 @@ BEGIN
   F5 : 00;
   F6 : a0; -- y86main:  pushl %ebp
   F7 : 5f;
-  F8 : 20; --           rrmovl %ebp, %esp
-  F9 : 54;
-  FA : 30; --           irmovl data2_end - data2, %eax
+  F8 : 20; --           rrmovl %esp, %ebp
+  F9 : 45;
+  FA : 30; --           irmovl (data2_end - data2)/4, %eax
   FB : f0;
-  FC : 10;
+  FC : 04;
   FD : 00;
   FE : 00;
   FF : 00;

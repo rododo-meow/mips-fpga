@@ -12,13 +12,13 @@ wire f_stall, f_mode, next_mode, f_output, f_available;
 
 wire [31:0] t_next_inst_pc, dbg_t_pc, t_imm, t_target_pc;
 wire [47:0] t_inst;
-wire t_stall, t_bubble, t_mode, t_wmem, t_wreg, t_m2reg, t_useimm, t_need_ra, t_need_rb, t_available, t_output, t_setcond, t_do_jmp, t_target_mode;
+wire t_stall, t_bubble, t_mode, t_wmem, t_wreg, t_m2reg, t_useimm, t_need_ra, t_need_rb, t_available, t_output, t_setcond, t_do_jmp, t_target_mode, t_imm2m, t_alua2memaddr;
 wire [3:0] t_aluc, t_jmp;
 wire [4:0] t_ra, t_rb, t_rn;
 wire [1:0] t_target_sel;
 
 wire [31:0] d_q1, d_q2, _d_q1, _d_q2, dbg_d_pc, d_imm, d_target_pc;
-wire d_stall, d_bubble, d_wmem, d_wreg, d_m2reg, d_useimm, d_need_ra, d_need_rb, d_target_mode, d_available, d_output, d_do_jmp, d_setcond, d_do_jmp_in_m, d_mode;
+wire d_stall, d_bubble, d_wmem, d_wreg, d_m2reg, d_useimm, d_need_ra, d_need_rb, d_target_mode, d_available, d_output, d_do_jmp, d_setcond, d_do_jmp_in_m, d_mode, d_imm2m,  d_alua2memaddr;
 wire [3:0] d_aluc, d_jmp;
 wire [4:0] d_ra, d_rb, d_rn;
 wire [47:0] dbg_d_inst;
@@ -26,15 +26,15 @@ reg _d_do_jmp;
 assign d_do_jmp = _d_do_jmp;
 wire [1:0] d_target_sel;
 
-wire e_wreg, e_m2reg, e_wmem, e_stall, e_bubble, e_available, e_output, e_setcond, e_do_jmp_in_m, e_mode;
+wire e_wreg, e_m2reg, e_wmem, e_stall, e_bubble, e_available, e_output, e_setcond, e_do_jmp_in_m, e_mode, e_imm2m, e_alua2memaddr;
 wire [3:0] e_aluc;
-wire [31:0] e_next_inst_pc, e_alua, e_alub, e_aluout, e_data, dbg_e_pc;
+wire [31:0] e_next_inst_pc, e_alua, e_alub, e_aluout, e_memin, dbg_e_pc, e_q2, e_imm, e_memaddr;
 wire [4:0] e_rn;
 wire [47:0] dbg_e_inst;
 reg [2:0] cc;
 
 wire m_stall, m_bubble, m_wreg, m_m2reg, m_wmem, m_available, m_output, m_target_mode, m_do_jmp;
-wire [31:0] m_data, m_aluout, m_memout, dbg_m_pc, m_target_pc;
+wire [31:0] m_memin, m_memaddr, m_memout, dbg_m_pc, m_target_pc, m_aluout;
 wire [4:0] m_rn;
 wire [47:0] dbg_m_inst;
 
@@ -92,9 +92,10 @@ pipeline_T T(
 	.dbg_f_pc(f_pc), .dbg_t_pc(dbg_t_pc)
 );
 translate_cu translate_cu(
+	.clk(clock), .resetn(resetn),
 	.mode(t_mode), .inst(t_inst), .next_inst_pc(t_next_inst_pc),
 	.aluc(t_aluc), .imm(t_imm), .ra(t_ra), .rb(t_rb), .rn(t_rn),
-	.m2reg(t_m2reg), .wmem(t_wmem), .wreg(t_wreg), .useimm(t_useimm), .jmp(t_jmp),
+	.m2reg(t_m2reg), .wmem(t_wmem), .wreg(t_wreg), .useimm(t_useimm), .jmp(t_jmp), .imm2m(t_imm2m), .alua2memaddr(t_alua2memaddr),
 	.available(t_available), ._output(t_output),
 	.need_ra(t_need_ra), .need_rb(t_need_rb),
 	.setcond(t_setcond),
@@ -123,7 +124,10 @@ pipeline_D D(
 	.dbg_t_inst(t_inst), .dbg_d_inst(dbg_d_inst),
 	.dbg_t_pc(dbg_t_pc), .dbg_d_pc(dbg_d_pc),
 	.t_setcond(t_setcond), .d_setcond(d_setcond),
-	.t_target_sel(t_target_sel), .d_target_sel(d_target_sel)
+	.t_target_sel(t_target_sel), .d_target_sel(d_target_sel),
+	.t_imm2m(t_imm2m), .d_imm2m(d_imm2m),
+	.t_alua2memaddr(t_alua2memaddr), .d_alua2memaddr(d_alua2memaddr),
+	.t_mode(t_mode), .d_mode(d_mode)
 );
 assign d_output = 1;
 always @(*) begin
@@ -148,7 +152,7 @@ end
 
 assign d_do_jmp_in_m = (d_target_sel == `TARGET_MEM) && (d_jmp == `JMP_ALWAYS);
 assign d_target_pc = (d_target_sel == `TARGET_IMM) ? d_imm : _d_q1;
-assign d_target_mode = 0;
+assign d_target_mode = d_mode;
 
 hazard_cu hazard_cu(
 	.d_available(d_available),
@@ -172,17 +176,17 @@ regfile rf(
 );
 mux4x32 d_mux_q1(
 	.a0(_d_q1),
-	.a1(e_data),
+	.a1(e_aluout),
 	.a2(m_memout),
-	.a3(0),
+	.a3(m_aluout),
 	.s(forward_d_q1),
 	.y(d_q1)
 );
 mux4x32 d_mux_q2(
 	.a0(_d_q2),
-	.a1(e_data),
+	.a1(e_aluout),
 	.a2(m_memout),
-	.a3(0),
+	.a3(m_aluout),
 	.s(forward_d_q2),
 	.y(d_q2)
 );
@@ -199,13 +203,16 @@ pipeline_E E(
 	.d_aluc(d_aluc), .e_aluc(e_aluc),
 	.d_alua(d_q1), .e_alua(e_alua),
 	.d_alub(d_useimm ? d_imm : d_q2), .e_alub(e_alub),
-	.d_data(d_q2), .e_data(e_data),
+	.d_q2(d_q2), .e_q2(e_q2),
 	.d_rn(d_rn), .e_rn(e_rn),
 	.dbg_d_pc(dbg_d_pc), .dbg_e_pc(dbg_e_pc),
 	.dbg_d_inst(dbg_d_inst), .dbg_e_inst(dbg_e_inst),
 	.d_setcond(d_setcond), .e_setcond(e_setcond),
 	.d_do_jmp_in_m(d_do_jmp_in_m), .e_do_jmp_in_m(e_do_jmp_in_m),
-	.d_mode(d_mode), .e_mode(e_mode)
+	.d_mode(d_mode), .e_mode(e_mode),
+	.d_imm2m(d_imm2m), .e_imm2m(e_imm2m),
+	.d_imm(d_imm), .e_imm(e_imm),
+	.d_alua2memaddr(d_alua2memaddr), .e_alua2memaddr(e_alua2memaddr)
 );
 
 alu e_alu(
@@ -229,6 +236,8 @@ always @(posedge clock, negedge resetn) begin
 end
 assign e_available = 1;
 assign e_output = e_wmem | e_wreg;
+assign e_memin = e_imm2m ? e_imm : e_q2;
+assign e_memaddr = e_alua2memaddr ? e_alua : e_aluout;
 
 // ================ MEM =================
 pipeline_M M(
@@ -238,20 +247,22 @@ pipeline_M M(
 	.e_wreg(e_wreg), .m_wreg(m_wreg),
 	.e_m2reg(e_m2reg), .m_m2reg(m_m2reg),
 	.e_wmem(e_wmem), .m_wmem(m_wmem),
-	.e_aluout(e_aluout), .m_aluout(m_aluout),
-	.e_data(e_data), .m_data(m_data),
+	.e_memaddr(e_memaddr), .m_memaddr(m_memaddr),
+	.e_memin(e_memin), .m_memin(m_memin),
 	.e_rn(e_rn), .m_rn(m_rn),
 	.dbg_e_pc(dbg_e_pc), .dbg_m_pc(dbg_m_pc),
 	.dbg_e_inst(dbg_e_inst), .dbg_m_inst(dbg_m_inst),
 	.e_do_jmp_in_m(e_do_jmp_in_m), .m_do_jmp_in_m(m_do_jmp),
-	.e_mode(e_mode), .m_mode(m_target_mode)
+	.e_mode(e_mode), .m_mode(m_target_mode),
+	.e_aluout(e_aluout), .m_aluout(m_aluout)
 );
 assign wmem = m_wmem;
-assign mem_addr = m_aluout;
-assign mem_datain = m_data;
+assign mem_addr = m_memaddr;
+assign mem_datain = m_memin;
 assign m_memout = mem_dataout;
 assign m_available = 1;
 assign m_output = m_wreg;
+assign m_target_pc = mem_dataout;
 
 // ================= WB =================
 pipeline_W W(

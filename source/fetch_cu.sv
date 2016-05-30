@@ -26,7 +26,7 @@ assign next_pc = f_next_inst_pc;
 assign next_mode = m_do_jmp ? m_target_mode : (d_do_jmp ? d_target_mode : (t_do_jmp ? t_target_mode : f_mode));
 assign instmem_addr = f_pc + off;
 
-always @(*) begin
+initial begin
 	inst_size[0] = 1;
 	inst_size[1] = 1;
 	inst_size[2] = 2;
@@ -35,17 +35,17 @@ always @(*) begin
 	inst_size[5] = 6;
 	inst_size[6] = 2;
 	inst_size[7] = 5;
-	inst_size[8] = 2;
-	inst_size[9] = 5;
-	inst_size['ha] = 1;
+	inst_size[8] = 5;
+	inst_size[9] = 1;
+	inst_size['ha] = 2;
 	inst_size['hb] = 2;
-	inst_size['hc] = 2;
+	inst_size['hc] = 1;
 	inst_size['hd] = 1;
 	inst_size['he] = 1;
 	inst_size['hf] = 1;
 end
 
-wire inst_done = (f_mode == 0) ? (off == 3'd3) : (off == (inst_size[_f_inst[7:0]] - 3'd1));
+wire inst_done = (f_mode == 0) ? (off == 3'd3) : (off == (inst_size[_f_inst[7:4]] - 3'd1));
 assign f_output = inst_done;
 assign f_available = inst_done | m_do_jmp | d_do_jmp | t_do_jmp;
 
@@ -101,15 +101,15 @@ always @(posedge clk, negedge resetn) begin
 end
 
 always @(*) begin
-	if (inst_done)
-		f_next_inst_pc_reg <= (f_mode == 0) ? (f_pc + 4) : (f_pc + inst_size[_f_inst[7:0]]);
-	else if (m_do_jmp)
+	if (m_do_jmp)
 		f_next_inst_pc_reg <= m_target_pc;
 	else if (d_do_jmp)
 		f_next_inst_pc_reg <= d_target_pc;
 	else if (t_do_jmp)
 		f_next_inst_pc_reg <= t_target_pc;
-	else
+	else if (inst_done)
+		f_next_inst_pc_reg <= (f_mode == 0) ? (f_pc + 4) : (f_pc + inst_size[_f_inst[7:4]]);
+	else 
 		f_next_inst_pc_reg <= f_pc;
 end
 

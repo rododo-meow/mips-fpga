@@ -1,11 +1,11 @@
 module pipeline_M(
 	input clk, resetn, m_stall, m_bubble,
 	input e_wreg, e_m2reg, e_wmem, e_do_jmp_in_m, e_mode,
-	input [31:0] e_data, e_aluout, dbg_e_pc,
+	input [31:0] e_memin, e_memaddr, dbg_e_pc, e_aluout,
 	input [47:0] dbg_e_inst,
 	input [4:0] e_rn,
 	output m_wreg, m_m2reg, m_wmem, m_do_jmp_in_m, m_mode,
-	output [31:0] m_data, m_aluout, dbg_m_pc,
+	output [31:0] m_memin, m_memaddr, dbg_m_pc, m_aluout,
 	output [47:0] dbg_m_inst,
 	output [4:0] m_rn);
 	
@@ -62,13 +62,13 @@ pipeline_reg #(
 
 pipeline_reg #(
 	.WIDTH(32)
-) M_data(
+) M_memin(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(m_stall),
 	.bubble(m_bubble),
-	.d(e_data),
-	.q(m_data)
+	.d(e_memin),
+	.q(m_memin)
 );
 
 pipeline_reg #(
@@ -80,6 +80,17 @@ pipeline_reg #(
 	.bubble(m_bubble),
 	.d(e_aluout),
 	.q(m_aluout)
+);
+
+pipeline_reg #(
+	.WIDTH(32)
+) M_memaddr(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(m_stall),
+	.bubble(m_bubble),
+	.d(e_memaddr),
+	.q(m_memaddr)
 );
 
 pipeline_reg #(

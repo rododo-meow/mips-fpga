@@ -3,8 +3,9 @@ module toplevel(
 	input [3:0] KEY,
 	input [9:0] SW,
 	output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
-	output [9:0] LEDR,
-	inout 		          		HPS_CONV_USB_N,
+	output [9:0] LEDR
+`ifdef HPS
+	,inout 		          		HPS_CONV_USB_N,
 	output		    [14:0]		HPS_DDR3_ADDR,
 	output		     [2:0]		HPS_DDR3_BA,
 	output		          		HPS_DDR3_CAS_N,
@@ -55,7 +56,9 @@ module toplevel(
 	inout 		     [7:0]		HPS_USB_DATA,
 	input 		          		HPS_USB_DIR,
 	input 		          		HPS_USB_NXT,
-	output		          		HPS_USB_STP);
+	output		          		HPS_USB_STP
+`endif
+);
 
 wire clock, locked, hps_ready;
 wire [31:0] pc;
@@ -196,6 +199,7 @@ hps hps(
 `else
 	assign avalon_acknowledge = 1;
 	assign avalon_read_data = 0;
+	assign hps_ready = 1;
 `endif
 
 endmodule
