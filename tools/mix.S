@@ -5,11 +5,11 @@ main:      ori $4, $0, data                  # address of data[0]
            addi $5, $0, (data_end - data)/4  # counter
            jal sum                           # call function
            or $30, $0, $8                    # save result to $30
-           lui $1, 0xf300                    # load KEY IO addr
+           jy86 y86entry                     # jump to y86 code
+mips_back: lui $1, 0xf300                    # load KEY IO addr
 wait:      lw $2, 4($1)
            bne $2, $0, wait                  # loop until KEY1 is pressed
-           jy86 y86entry                     # jump to y86 code
-mips_back: or $1, $30, $0                    # get result back
+           or $1, $30, $0                    # get result back
            jal display                       # display
 halt:      j halt                            # dead loop
 
