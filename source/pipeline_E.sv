@@ -1,14 +1,47 @@
 module pipeline_E(
 	input clk, resetn, e_stall, e_bubble,
-	input d_wreg, d_m2reg, d_wmem, d_jal, d_shift, d_aluimm, 
+	input d_wreg, d_m2reg, d_wmem, d_setcond, d_do_jmp_in_m, d_mode,
 	input [3:0] d_aluc, 
-	input [31:0] d_next_inst_pc, d_q1, d_q2, d_ext_imm, dbg_d_pc, dbg_d_inst,
+	input [31:0] d_alua, d_alub, d_data, dbg_d_pc,
+	input [47:0] dbg_d_inst,
 	input [4:0] d_rn,
-	output e_wreg, e_m2reg, e_wmem, e_jal, e_shift, e_aluimm, 
+	output e_wreg, e_m2reg, e_wmem, e_setcond, e_do_jmp_in_m, e_mode,
 	output [3:0] e_aluc, 
-	output [31:0] e_next_inst_pc, e_q1, e_q2, e_ext_imm, dbg_e_pc, dbg_e_inst,
+	output [31:0] e_alua, e_alub, e_data, dbg_e_pc,
+	output [47:0] dbg_e_inst,
 	output [4:0] e_rn);
 	
+pipeline_reg E_mode(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_mode),
+	.q(e_mode)
+);
+
+pipeline_reg #(
+	.BUBBLE_V(0)
+) E_setcond(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_setcond),
+	.q(e_setcond)
+);
+
+pipeline_reg #(
+	.BUBBLE_V(0)
+) E_do_jmp_in_m(
+	.clk(clk),
+	.resetn(resetn),
+	.stall(e_stall),
+	.bubble(e_bubble),
+	.d(d_do_jmp_in_m),
+	.q(e_do_jmp_in_m)
+);
+
 pipeline_reg #(
 	.BUBBLE_V(0)
 ) E_wreg(
@@ -40,33 +73,6 @@ pipeline_reg #(
 	.q(e_wmem)
 );
 
-pipeline_reg E_jal(
-	.clk(clk),
-	.resetn(resetn),
-	.stall(e_stall),
-	.bubble(e_bubble),
-	.d(d_jal),
-	.q(e_jal)
-);
-
-pipeline_reg E_shift(
-	.clk(clk),
-	.resetn(resetn),
-	.stall(e_stall),
-	.bubble(e_bubble),
-	.d(d_shift),
-	.q(e_shift)
-);
-
-pipeline_reg E_aluimm(
-	.clk(clk),
-	.resetn(resetn),
-	.stall(e_stall),
-	.bubble(e_bubble),
-	.d(d_aluimm),
-	.q(e_aluimm)
-);
-
 pipeline_reg #(
 	.WIDTH(4)
 ) E_aluc(
@@ -80,46 +86,35 @@ pipeline_reg #(
 
 pipeline_reg #(
 	.WIDTH(32)
-) E_next_inst_pc(
+) E_alua(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(e_stall),
 	.bubble(e_bubble),
-	.d(d_next_inst_pc),
-	.q(e_next_inst_pc)
+	.d(d_alua),
+	.q(e_alua)
 );
 
 pipeline_reg #(
 	.WIDTH(32)
-) E_q1(
+) E_alub(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(e_stall),
 	.bubble(e_bubble),
-	.d(d_q1),
-	.q(e_q1)
+	.d(d_alub),
+	.q(e_alub)
 );
 
 pipeline_reg #(
 	.WIDTH(32)
-) E_q2(
+) E_data(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(e_stall),
 	.bubble(e_bubble),
-	.d(d_q2),
-	.q(e_q2)
-);
-
-pipeline_reg #(
-	.WIDTH(32)
-) E_ext_imm(
-	.clk(clk),
-	.resetn(resetn),
-	.stall(e_stall),
-	.bubble(e_bubble),
-	.d(d_ext_imm),
-	.q(e_ext_imm)
+	.d(d_data),
+	.q(e_data)
 );
 
 pipeline_reg #(

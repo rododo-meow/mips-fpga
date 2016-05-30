@@ -1,79 +1,83 @@
-module sc_cpu (clock,resetn,mem_dataout,wmem,mem_addr,mem_datain,pc,instmem_dataout);
+module sc_cpu (clock,resetn,mem_dataout,wmem,mem_addr,mem_datain,instmem_addr,instmem_dataout);
 input [31:0] mem_dataout;
 input [7:0] instmem_dataout;
 input clock,resetn;
-output [31:0] mem_datain,pc,mem_addr;
+output [31:0] mem_datain,instmem_addr,mem_addr;
 output wmem;
   
 wire [31:0] f_pc, next_pc, f_next_inst_pc;
-wire [47:0] f_inst, _f_inst;
-wire [2:0] f_off, next_off;
-wire f_stall, f_mode, next_mode;
+wire [47:0] f_inst;
+wire f_stall, f_mode, next_mode, f_output, f_available;
 
-wire [31:0] t_next_inst_pc, t_transed_inst;
+wire [31:0] t_next_inst_pc, dbg_t_pc, t_imm, t_target_pc;
 wire [47:0] t_inst;
-wire t_stall, t_bubble, t_mode;
+wire t_stall, t_bubble, t_mode, t_wmem, t_wreg, t_m2reg, t_useimm, t_need_ra, t_need_rb, t_available, t_output, t_setcond, t_do_jmp, t_target_mode;
+wire [3:0] t_aluc, t_jmp;
+wire [4:0] t_ra, t_rb, t_rn;
+wire [1:0] t_target_sel;
 
-wire [31:0] d_next_inst_pc, d_next_inst_pc_imm, d_q1, d_q2, d_ext_imm, _d_q1, _d_q2, dbg_d_pc, d_target_pc;
-wire [31:0] d_inst;
-wire d_stall, d_bubble, d_wmem, d_wreg, d_regrt, d_m2reg, d_shift, d_aluimm, d_jal, d_sext, d_need_q1, d_need_q2, d_mode, d_flush_fetch, d_target_mode;
-wire [3:0] d_aluc;
-wire [4:0] d_rn;
-wire [5:0] d_op = d_inst[31:26];
-wire [5:0] d_func = d_inst[5:0];
-wire [4:0] d_rs = d_inst[25:21];
-wire [4:0] d_rt = d_inst[20:16];
-wire [4:0] d_rd = d_inst[15:11];
-wire [15:0] d_imm = d_inst[15:0];
-wire [25:0] d_addr = d_inst[25:0];
+wire [31:0] d_q1, d_q2, _d_q1, _d_q2, dbg_d_pc, d_imm, d_target_pc;
+wire d_stall, d_bubble, d_wmem, d_wreg, d_m2reg, d_useimm, d_need_ra, d_need_rb, d_target_mode, d_available, d_output, d_do_jmp, d_setcond, d_do_jmp_in_m, d_mode;
+wire [3:0] d_aluc, d_jmp;
+wire [4:0] d_ra, d_rb, d_rn;
+wire [47:0] dbg_d_inst;
+reg _d_do_jmp;
+assign d_do_jmp = _d_do_jmp;
+wire [1:0] d_target_sel;
 
-wire e_wreg, e_m2reg, e_wmem, e_jal, e_aluimm, e_shift, e_stall, e_bubble;
+wire e_wreg, e_m2reg, e_wmem, e_stall, e_bubble, e_available, e_output, e_setcond, e_do_jmp_in_m, e_mode;
 wire [3:0] e_aluc;
-wire [31:0] e_p4, e_q1, e_q2, e_ext_imm, e_aluout, e_data, e_alua, e_alub, dbg_e_pc, dbg_e_inst;
-wire [4:0] _e_rn, e_rn;
+wire [31:0] e_next_inst_pc, e_alua, e_alub, e_aluout, e_data, dbg_e_pc;
+wire [4:0] e_rn;
+wire [47:0] dbg_e_inst;
+reg [2:0] cc;
 
-wire m_stall, m_bubble, m_wreg, m_m2reg, m_wmem;
-wire [31:0] m_data, m_memin, m_memout, dbg_m_pc, dbg_m_inst;
+wire m_stall, m_bubble, m_wreg, m_m2reg, m_wmem, m_available, m_output, m_target_mode, m_do_jmp;
+wire [31:0] m_data, m_aluout, m_memout, dbg_m_pc, m_target_pc;
 wire [4:0] m_rn;
+wire [47:0] dbg_m_inst;
 
-wire w_wreg, w_m2reg, w_stall, w_bubble;
-wire [31:0] w_data, w_memout, w_d, dbg_w_pc, dbg_w_inst;
+wire w_wreg, w_m2reg, w_stall, w_bubble, w_available, w_output;
+wire [31:0] w_aluout, w_memout, w_d, dbg_w_pc;
 wire [4:0] w_rn;
+wire [47:0] dbg_w_inst;
 
 wire [1:0] forward_d_q1, forward_d_q2;
 
-hazard_cu hazard_cu(
-	.f_stall(f_stall), 
-	.d_stall(d_stall), .d_bubble(d_bubble), 
-	.e_stall(e_stall), .e_bubble(e_bubble), 
-	.m_stall(m_stall), .m_bubble(m_bubble), 
-	.w_stall(w_stall), .w_bubble(w_bubble),
-	.d_rs(d_rs), .d_rt(d_rt), .e_rn(e_rn), .m_rn(m_rn),
-	.forward_d_q1(forward_d_q1), .forward_d_q2(forward_d_q2),
-	.e_m2reg(e_m2reg), .e_wreg(e_wreg),
-	.m_m2reg(m_m2reg), .m_wreg(m_wreg),
-	.d_need_q1(d_need_q1), .d_need_q2(d_need_q2)
+pipeline_cu pipeline_cu(
+	.f_available(f_available), .f_output(f_output),
+	.t_available(t_available), .t_output(t_output),
+	.d_available(d_available), .d_output(d_output),
+	.e_available(e_available), .e_output(e_output),
+	.m_available(m_available), .m_output(m_output),
+	.w_available(w_available), .w_output(w_output),
+	.d_do_jmp(d_do_jmp), .m_do_jmp(m_do_jmp), .t_do_jmp(t_do_jmp),
+	.f_stall(f_stall),
+	.t_stall(t_stall), .t_bubble(t_bubble),
+	.d_stall(d_stall), .d_bubble(d_bubble),
+	.e_stall(e_stall), .e_bubble(e_bubble),
+	.m_stall(m_stall), .m_bubble(m_bubble),
+	.w_stall(w_stall), .w_bubble(w_bubble)
 );
 
 // ================= IF =================
 pipeline_F F(
 	.clk(clock),
 	.resetn(resetn),
-	.f_stall(0),
+	.f_stall(f_stall),
 	.next_pc(next_pc), .f_pc(f_pc),
-	.next_off(next_off), .f_off(f_off),
-	.next_mode(next_mode), .f_mode(f_mode),
-	._f_inst(_f_inst), .f_inst(f_inst)
+	.next_mode(next_mode), .f_mode(f_mode)
 );
 
-assign pc = f_pc + f_off;
 fetch_cu fetch_cu(
-	.f_pc(f_pc), .next_pc(next_pc), .f_next_inst_pc(f_next_inst_pc),
-	.f_off(f_off), .next_off(next_off),
-	.instmem_dataout(instmem_dataout), .f_inst(f_inst), ._f_inst(_f_inst),
+	.clk(clock), .resetn(resetn),
+	.f_pc(f_pc), .next_pc(next_pc), .f_next_inst_pc(f_next_inst_pc), .instmem_addr(instmem_addr),
+	.instmem_dataout(instmem_dataout), .f_inst(f_inst),
 	.f_mode(f_mode), .next_mode(next_mode),
-	.d_flush_fetch(d_flush_fetch),
-	.d_target_pc(d_target_pc), .d_target_mode(d_target_mode)
+	.d_do_jmp(d_do_jmp), .d_target_pc(d_target_pc), .d_target_mode(d_target_mode),
+	.f_output(f_output), .f_available(f_available),
+	.t_do_jmp(t_do_jmp), .t_target_pc(t_target_pc), .t_target_mode(t_target_mode),
+	.m_do_jmp(m_do_jmp), .m_target_pc(m_target_pc), .m_target_mode(m_target_mode)
 );
 
 // =============== TRANS ================
@@ -82,7 +86,19 @@ pipeline_T T(
 	.resetn(resetn),
 	.t_stall(t_stall), .t_bubble(t_bubble),
 	.f_inst(f_inst), .t_inst(t_inst),
-	.t_isbubble(t_isbubble)
+	.f_mode(f_mode), .t_mode(t_mode),
+	.f_next_inst_pc(f_next_inst_pc), .t_next_inst_pc(t_next_inst_pc),
+	.dbg_f_pc(f_pc), .dbg_t_pc(dbg_t_pc)
+);
+translate_cu translate_cu(
+	.mode(t_mode), .inst(t_inst), .next_inst_pc(t_next_inst_pc),
+	.aluc(t_aluc), .imm(t_imm), .ra(t_ra), .rb(t_rb), .rn(t_rn),
+	.m2reg(t_m2reg), .wmem(t_wmem), .wreg(t_wreg), .useimm(t_useimm), .jmp(t_jmp),
+	.available(t_available), ._output(t_output),
+	.need_ra(t_need_ra), .need_rb(t_need_rb),
+	.setcond(t_setcond),
+	.do_jmp(t_do_jmp), .target_pc(t_target_pc), .target_mode(t_target_mode),
+	.target_sel(t_target_sel)
 );
 	
 // ================= ID =================
@@ -91,28 +107,60 @@ pipeline_D D(
 	.resetn(resetn),
 	.d_stall(d_stall),
 	.d_bubble(d_bubble),
-	.t_inst(f_mode == 0 ? f_inst[31:0] : t_transed_inst), .d_inst(d_inst),
-	.t_next_inst_pc(f_mode == 0 ? f_next_inst_pc : t_next_inst_pc), .d_next_inst_pc(d_next_inst_pc),
-	.dbg_t_pc(t_pc), .dbg_d_pc(dbg_d_pc)
+	.t_aluc(t_aluc), .d_aluc(d_aluc),
+	.t_imm(t_imm), .d_imm(d_imm),
+	.t_ra(t_ra), .d_ra(d_ra),
+	.t_rb(t_rb), .d_rb(d_rb),
+	.t_rn(t_rn), .d_rn(d_rn),
+	.t_m2reg(t_m2reg), .d_m2reg(d_m2reg),
+	.t_wmem(t_wmem), .d_wmem(d_wmem),
+	.t_wreg(t_wreg), .d_wreg(d_wreg),
+	.t_useimm(t_useimm), .d_useimm(d_useimm),
+	.t_jmp(t_jmp), .d_jmp(d_jmp),
+	.t_need_ra(t_need_ra), .d_need_ra(d_need_ra),
+	.t_need_rb(t_need_rb), .d_need_rb(d_need_rb),
+	.dbg_t_inst(t_inst), .dbg_d_inst(dbg_d_inst),
+	.dbg_t_pc(dbg_t_pc), .dbg_d_pc(dbg_d_pc),
+	.t_setcond(t_setcond), .d_setcond(d_setcond),
+	.t_target_sel(t_target_sel), .d_target_sel(d_target_sel)
 );
+assign d_output = 1;
+always @(*) begin
+	if (!d_available)
+		_d_do_jmp <= 0;
+	else begin
+		case (d_jmp)
+		translate_cu.JMP_NEVER: _d_do_jmp <= 0;
+		translate_cu.JMP_ALWAYS: _d_do_jmp <= (d_target_sel == translate_cu.TARGET_IMM) || (d_target_sel == translate_cu.TARGET_Q1);
+		translate_cu.JMP_E: _d_do_jmp <= cc[0];
+		translate_cu.JMP_LE: _d_do_jmp <= (cc[1] ^ cc[2]) | cc[0];
+		translate_cu.JMP_G: _d_do_jmp <= ~((cc[1] ^ cc[2]) | cc[0]);
+		translate_cu.JMP_GE: _d_do_jmp <= ~(cc[1] ^ cc[2]);
+		translate_cu.JMP_NE: _d_do_jmp <= ~cc[0];
+		translate_cu.JMP_L: _d_do_jmp <= cc[1] ^ cc[2];
+		translate_cu.JMP_MIPS_E: _d_do_jmp <= _d_q1 == _d_q2;
+		translate_cu.JMP_MIPS_NE: _d_do_jmp <= _d_q1 != _d_q2;
+		default: _d_do_jmp <= 0;
+		endcase
+	end
+end
 
-sc_cu d_cu(
-	.op(d_op), .func(d_func),
-	.z(d_q1 == d_q2),
-	.wmem(d_wmem),
-	.wreg(d_wreg),
-	.regrt(d_regrt),
-	.m2reg(d_m2reg),
-	.aluc(d_aluc),
-	.shift(d_shift),
-	.aluimm(d_aluimm),
-	.jal(d_jal),
-	.sext(d_sext),
-	.need_q1(d_need_q1), .need_q2(d_need_q2)
+assign d_do_jmp_in_m = (d_target_sel == translate_cu.TARGET_MEM) && (d_jmp == translate_cu.JMP_ALWAYS);
+assign d_target_pc = (d_target_sel == translate_cu.TARGET_IMM) ? d_imm : _d_q1;
+assign d_target_mode = 0;
+
+hazard_cu hazard_cu(
+	.d_available(d_available),
+	.d_ra(d_ra), .d_rb(d_rb), .e_rn(e_rn), .m_rn(m_rn),
+	.forward_d_q1(forward_d_q1), .forward_d_q2(forward_d_q2),
+	.e_m2reg(e_m2reg), .e_wreg(e_wreg),
+	.d_need_ra(d_need_ra), .d_need_rb(d_need_rb),
+	.m_m2reg(m_m2reg), .m_wreg(m_wreg),
+	.d_jmp(d_jmp), .e_setcond(e_setcond)
 );
 regfile rf(
-	.rna(d_rs),
-	.rnb(d_rt),
+	.rna(d_ra),
+	.rnb(d_rb),
 	.d(w_d),
 	.wn(w_rn),
 	.we(w_wreg),
@@ -120,14 +168,6 @@ regfile rf(
 	.clrn(resetn),
 	.qa(_d_q1),
 	.qb(_d_q2)
-);
-assign d_ext_imm = { {16{d_sext & d_imm[15]}}, d_imm };
-assign d_next_inst_pc_imm = d_next_inst_pc + { d_ext_imm[29:0], 2'b00 };
-mux2x5 d_mux_rn(
-	.a0(d_rd),
-	.a1(d_rt),
-	.s(d_regrt),
-	.y(d_rn)
 );
 mux4x32 d_mux_q1(
 	.a0(_d_q1),
@@ -155,44 +195,39 @@ pipeline_E E(
 	.d_wreg(d_wreg), .e_wreg(e_wreg),
 	.d_m2reg(d_m2reg), .e_m2reg(e_m2reg),
 	.d_wmem(d_wmem), .e_wmem(e_wmem),
-	.d_jal(d_jal), .e_jal(e_jal),
 	.d_aluc(d_aluc), .e_aluc(e_aluc),
-	.d_aluimm(d_aluimm), .e_aluimm(e_aluimm),
-	.d_shift(d_shift), .e_shift(e_shift),
-	.d_next_inst_pc(d_next_inst_pc), .e_next_inst_pc(e_next_inst_pc),
-	.d_q1(d_q1), .e_q1(e_q1),
-	.d_q2(d_q2), .e_q2(e_q2),
-	.d_ext_imm(d_ext_imm), .e_ext_imm(e_ext_imm),
-	.d_rn(d_rn), .e_rn(_e_rn),
+	.d_alua(d_q1), .e_alua(e_alua),
+	.d_alub(d_useimm ? d_imm : d_q2), .e_alub(e_alub),
+	.d_data(d_q2), .e_data(e_data),
+	.d_rn(d_rn), .e_rn(e_rn),
 	.dbg_d_pc(dbg_d_pc), .dbg_e_pc(dbg_e_pc),
-	.dbg_d_inst(d_inst), .dbg_e_inst(dbg_e_inst)
+	.dbg_d_inst(dbg_d_inst), .dbg_e_inst(dbg_e_inst),
+	.d_setcond(d_setcond), .e_setcond(e_setcond),
+	.d_do_jmp_in_m(d_do_jmp_in_m), .e_do_jmp_in_m(e_do_jmp_in_m),
+	.d_mode(d_mode), .e_mode(e_mode)
 );
 
-mux2x32 e_mux_alua(
-	.a0(e_q1),
-	.a1({ 27'b0, e_ext_imm[10:6] }),
-	.s(e_shift),
-	.y(e_alua)
-);
-mux2x32 e_mux_alub(
-	.a0(e_q2),
-	.a1(e_ext_imm),
-	.s(e_aluimm),
-	.y(e_alub)
-);
 alu e_alu(
 	.a(e_alua),
 	.b(e_alub),
 	.aluc(e_aluc),
 	.s(e_aluout)
 );
-mux2x32 e_mux_data(
-	.a0(e_aluout),
-	.a1(e_next_inst_pc),
-	.s(e_jal),
-	.y(e_data)
-);
-assign e_rn = e_jal ? 5'd31 : _e_rn;
+always @(posedge clock, negedge resetn) begin
+	if (!resetn)
+		cc <= 3'b000;
+	else if (e_setcond) begin
+		cc[0] <= e_aluout == 32'b0;
+		cc[1] <= e_aluout[31];
+		case (e_aluc)
+		translate_cu.ALU_ADD: cc[2] <= ~(e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
+		translate_cu.ALU_SUB: cc[2] <= (e_alua[31] ^ e_alub[31]) & (e_alua[31] != e_aluout[31]);
+		default: cc[2] <= 0;
+		endcase
+	end
+end
+assign e_available = 1;
+assign e_output = e_wmem | e_wreg;
 
 // ================ MEM =================
 pipeline_M M(
@@ -202,16 +237,20 @@ pipeline_M M(
 	.e_wreg(e_wreg), .m_wreg(m_wreg),
 	.e_m2reg(e_m2reg), .m_m2reg(m_m2reg),
 	.e_wmem(e_wmem), .m_wmem(m_wmem),
+	.e_aluout(e_aluout), .m_aluout(m_aluout),
 	.e_data(e_data), .m_data(m_data),
-	.e_memin(e_q2), .m_memin(m_memin),
 	.e_rn(e_rn), .m_rn(m_rn),
 	.dbg_e_pc(dbg_e_pc), .dbg_m_pc(dbg_m_pc),
-	.dbg_e_inst(dbg_e_inst), .dbg_m_inst(dbg_m_inst)
+	.dbg_e_inst(dbg_e_inst), .dbg_m_inst(dbg_m_inst),
+	.e_do_jmp_in_m(e_do_jmp_in_m), .m_do_jmp_in_m(m_do_jmp),
+	.e_mode(e_mode), .m_mode(m_target_mode)
 );
 assign wmem = m_wmem;
-assign mem_addr = m_data;
-assign mem_datain = m_memin;
+assign mem_addr = m_aluout;
+assign mem_datain = m_data;
 assign m_memout = mem_dataout;
+assign m_available = 1;
+assign m_output = m_wreg;
 
 // ================= WB =================
 pipeline_W W(
@@ -220,7 +259,7 @@ pipeline_W W(
 	.w_stall(w_stall), .w_bubble(w_bubble),
 	.m_wreg(m_wreg), .w_wreg(w_wreg),
 	.m_m2reg(m_m2reg), .w_m2reg(w_m2reg),
-	.m_data(m_data), .w_data(w_data),
+	.m_aluout(m_aluout), .w_aluout(w_aluout),
 	.m_memout(m_memout), .w_memout(w_memout),
 	.m_rn(m_rn), .w_rn(w_rn),
 	.dbg_m_pc(dbg_m_pc), .dbg_w_pc(dbg_w_pc),
@@ -228,10 +267,12 @@ pipeline_W W(
 );
 
 mux2x32 w_mux_d(
-	.a0(w_data),
+	.a0(w_aluout),
 	.a1(w_memout),
 	.s(w_m2reg),
 	.y(w_d)
 );
+assign w_available = 1;
+assign w_output = 1;
 
 endmodule

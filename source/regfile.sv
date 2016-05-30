@@ -18,8 +18,8 @@ module regfile (rna,rnb,d,wn,we,clk,clrn,qa,qb);
    assign qa = ((rna == wn) & we) ? d : register[rna]; // read
    assign qb = ((rnb == wn) & we) ? d : register[rnb]; // read
 
-	initial register[0] <= 0;
-	always @* register[0] <= 0;
+	initial register[0] <= 32'd0;
+	always @* register[0] <= 32'd0;
 	
 	generate
 		for (i = 1; i < 32; i = i + 1) begin: r

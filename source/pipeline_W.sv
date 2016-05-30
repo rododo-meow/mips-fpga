@@ -1,10 +1,12 @@
 module pipeline_W(
 	input clk, resetn, w_stall, w_bubble,
 	input m_wreg, m_m2reg,
-	input [31:0] m_data, m_memout, dbg_m_pc, dbg_m_inst,
+	input [31:0] m_aluout, m_memout, dbg_m_pc,
+	input [47:0] dbg_m_inst,
 	input [4:0] m_rn,
 	output w_wreg, w_m2reg,
-	output [31:0] w_data, w_memout, dbg_w_pc, dbg_w_inst,
+	output [31:0] w_aluout, w_memout, dbg_w_pc,
+	output [47:0] dbg_w_inst,
 	output [4:0] w_rn);
 	
 pipeline_reg #(
@@ -29,13 +31,13 @@ pipeline_reg W_m2reg(
 
 pipeline_reg #(
 	.WIDTH(32)
-) W_data(
+) W_aluout(
 	.clk(clk),
 	.resetn(resetn),
 	.stall(w_stall),
 	.bubble(w_bubble),
-	.d(m_data),
-	.q(w_data)
+	.d(m_aluout),
+	.q(w_aluout)
 );
 
 pipeline_reg #(
@@ -73,7 +75,7 @@ pipeline_reg #(
 );
 
 pipeline_reg #(
-	.WIDTH(32),
+	.WIDTH(48),
 	.BUBBLE_V(0)
 ) W_dbg_inst(
 	.clk(clk),
