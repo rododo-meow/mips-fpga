@@ -62,7 +62,7 @@ class MifFile:
             raise BadMIF()
 
         re_end = re.compile(r"^\s*END\s*;\s*$")
-        re_content = re.compile(r"^\s*([0-9a-fA-F]+)\s*:\s*([0-9a-fA-F]{%d})\s*;\s*(%%(.*)%%)?\s*$" % (self.memory.unit*2))
+        re_content = re.compile(r"^\s*([0-9a-fA-F]+)\s*:\s*([0-9a-fA-F]{%d})\s*;\s*(?:-- (.*))?\s*$" % (self.memory.unit*2))
         l = f.readline()
         while re_end.match(l) == None:
             m = re_content.match(l)
@@ -89,7 +89,7 @@ class MifFile:
             if line[1] == None:
                 print >>f, "%4X : %s;" % (i / self.memory.unit, reduce(lambda x,y:x+y, map(lambda x:"%02x"%(x), line[0][::-1])))
             else:
-                print >>f, "%4X : %s; %% %s %%" % (i / self.memory.unit, reduce(lambda x,y:x+y, map(lambda x:"%02x"%(x), line[0][::-1])), line[1])
+                print >>f, "%4X : %s; -- %s" % (i / self.memory.unit, reduce(lambda x,y:x+y, map(lambda x:"%02x"%(x), line[0][::-1])), line[1])
         print >>f, "END;"
 
     def write_back(self):
