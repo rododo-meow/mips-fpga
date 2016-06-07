@@ -150,6 +150,7 @@ class Assembler:
         self.mips_ins += self.__make("mips", "S", "Sll")
         self.mips_ins += self.__make("mips", "S", "Srl")
         self.mips_ins += self.__make("mips", "S", "Sra")
+        self.mips_ins += self.__make("mips", "R", "Srlv")
         self.mips_ins += self.__make("mips", "Jr", "Jr")
         self.mips_ins += self.__make("mips", "I", "Addi")
         self.mips_ins += self.__make("mips", "I", "Andi")
@@ -231,61 +232,65 @@ class Assembler:
 
     def relocate(self):
         for r in self.reloc:
-            if r[0] == "MIPS_IMM":
-                imm = eval(r[2], self.label)
-                if imm > 0xffff:
-                    print >>sys.stderr, "Warning: imm '%s' overflow" % (r[2])
-                r[1][0].set(r[1][1], [ imm & 0xff, (imm >> 8) & 0xff ])
-            elif r[0] == "MIPS_OFF":
-                target = eval(r[2], self.label)
-                target -= (r[1][1] + 4)
-                if target & 0x3 != 0:
-                    print >>sys.stderr, "Error: pc offset '%s' not aligned" % (r[2])
-                    sys.exit(1)
-                target = target >> 2
-                if target > 0x7fff or target < -0x8000:
-                    print >>sys.stderr, "Error: pc offset '%s' overflow" %(r[2])
-                    sys.exit(1)
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff ])
-            elif r[0] == "MIPS_ADDR":
-                target = eval(r[2], self.label)
-                if target & 0x3 != 0:
-                    print >>sys.stderr, "Error: direct jump to '%s' not aligned" % (r[2])
-                    sys.exit(1)
-                if (target >> 28) & 0xf != (r[1][1] >> 28) & 0xf:
-                    print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
-                    sys.exit(1)
-                target = target >> 2
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
-            elif r[0] == "WORD":
-                target = eval(r[2], self.label)
-                if target > 0xffffffff or target < -0x100000000:
-                    print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
-            elif r[0] == "Y86_IMM":
-                if r[2][0] == "$":
-                    r[2] = r[2][1:]
-                target = eval(r[2], self.label)
-                if target > 0xffffffff or target < -0x100000000:
-                    print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
-            elif r[0] == "MIPS_Y86_ADDR":
-                target = eval(r[2], self.label)
-                if (target >> 26) & 0x3f != (r[1][1] >> 26) & 0x3f:
-                    print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
-                    sys.exit(1)
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
-            elif r[0] == "Y86_MIPS_ADDR":
-                if r[2][0] == "$":
-                    r[2] = r[2][1:]
-                target = eval(r[2], self.label)
-                if target > 0xffffffff or target < -0x100000000:
-                    print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
-                if target & 0x3 != 0:
-                    print >>sys.stderr, "Error: direct jump to mips code '%s' not aligned" % (r[2])
-                r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
-            else:
-                raise BaseException("Unknown relocation type '%s'" % (r[0]))
+            try:
+                if r[0] == "MIPS_IMM":
+                    imm = eval(r[2], self.label)
+                    if imm > 0xffff:
+                        print >>sys.stderr, "Warning: imm '%s' overflow" % (r[2])
+                    r[1][0].set(r[1][1], [ imm & 0xff, (imm >> 8) & 0xff ])
+                elif r[0] == "MIPS_OFF":
+                    target = eval(r[2], self.label)
+                    target -= (r[1][1] + 4)
+                    if target & 0x3 != 0:
+                        print >>sys.stderr, "Error: pc offset '%s' not aligned" % (r[2])
+                        sys.exit(1)
+                    target = target >> 2
+                    if target > 0x7fff or target < -0x8000:
+                        print >>sys.stderr, "Error: pc offset '%s' overflow" %(r[2])
+                        sys.exit(1)
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff ])
+                elif r[0] == "MIPS_ADDR":
+                    target = eval(r[2], self.label)
+                    if target & 0x3 != 0:
+                        print >>sys.stderr, "Error: direct jump to '%s' not aligned" % (r[2])
+                        sys.exit(1)
+                    if (target >> 28) & 0xf != (r[1][1] >> 28) & 0xf:
+                        print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
+                        sys.exit(1)
+                    target = target >> 2
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
+                elif r[0] == "WORD":
+                    target = eval(r[2], self.label)
+                    if target > 0xffffffff or target < -0x100000000:
+                        print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
+                elif r[0] == "Y86_IMM":
+                    if r[2][0] == "$":
+                        r[2] = r[2][1:]
+                    target = eval(r[2], self.label)
+                    if target > 0xffffffff or target < -0x100000000:
+                        print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
+                elif r[0] == "MIPS_Y86_ADDR":
+                    target = eval(r[2], self.label)
+                    if (target >> 26) & 0x3f != (r[1][1] >> 26) & 0x3f:
+                        print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
+                        sys.exit(1)
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
+                elif r[0] == "Y86_MIPS_ADDR":
+                    if r[2][0] == "$":
+                        r[2] = r[2][1:]
+                    target = eval(r[2], self.label)
+                    if target > 0xffffffff or target < -0x100000000:
+                        print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
+                    if target & 0x3 != 0:
+                        print >>sys.stderr, "Error: direct jump to mips code '%s' not aligned" % (r[2])
+                    r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
+                else:
+                    raise BaseException("Unknown relocation type '%s'" % (r[0]))
+            except:
+                print r[2]
+                raise
 
     def __issue(self, bytes, comment):
         if self.sect == "text":
@@ -390,6 +395,8 @@ class Assembler:
         myaddr = self.__issue(__make_mips_ins("J", 0x3a, 0), comment)
         self.reloc += __make_reloc("MIPS_Y86_ADDR", myaddr, addr)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
+    def __mips_IssueSrlv(self, rd, rs, rt, comment):
+        self.__issue(__make_mips_ins("R", 0, rs, rt, rd, 0, 0x06), comment)
 
     def __y86_generateN(name):
         return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s*%%COMMENT?$"))

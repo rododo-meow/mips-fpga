@@ -3,7 +3,16 @@ module toplevel(
 	input [3:0] KEY,
 	input [9:0] SW,
 	output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
-	output [9:0] LEDR
+	output [9:0] LEDR,
+	//////////// VGA //////////
+	output		     [7:0]		VGA_B,
+	output		          		VGA_BLANK_N,
+	output		          		VGA_CLK,
+	output		     [7:0]		VGA_G,
+	output		          		VGA_HS,
+	output		     [7:0]		VGA_R,
+	output		          		VGA_SYNC_N,
+	output		          		VGA_VS
 `ifdef HPS
 	,inout 		          		HPS_CONV_USB_N,
 	output		    [14:0]		HPS_DDR3_ADDR,
@@ -60,7 +69,7 @@ module toplevel(
 `endif
 );
 
-wire clock, locked, hps_ready;
+wire clock, locked, hps_ready, vga_clk, vga_pll_locked;
 wire [31:0] pc;
 
 wire [23:0] avalon_address;
@@ -75,8 +84,15 @@ pll pll(
 	.locked(locked)
 );
 
+vga_pll vga_pll(
+	.refclk(CLOCK_50),
+	.outclk_0(vga_clk),
+	.rst(~KEY[0]),
+	.locked(vga_pll_locked)
+);
+
 sc_computer computer(
-	.resetn(KEY[0] & locked & hps_ready),
+	.resetn(KEY[0] & locked & vga_pll_locked & hps_ready),
 	.clock(clock),
 	.LED(LEDR),
 	.SEG0(HEX0),
@@ -86,7 +102,10 @@ sc_computer computer(
 	.SEG4(HEX4),
 	.SEG5(HEX5),
 	.SW(SW),
-	.KEY(KEY)
+	.KEY(KEY),
+	.vga_clk(vga_clk),
+	.VGA_R(VGA_R), .VGA_G(VGA_G), .VGA_B(VGA_B),
+	.VGA_HS(VGA_HS), .VGA_VS(VGA_VS), .VGA_BLANK_N(VGA_BLANK_N), .VGA_SYNC_N(VGA_SYNC_N), .VGA_CLK(VGA_CLK)
 );
 
 `ifdef HPS

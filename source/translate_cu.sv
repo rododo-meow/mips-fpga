@@ -61,6 +61,7 @@ localparam MIPS_FUNC_SLL = 6'b000000;
 localparam MIPS_FUNC_SRL = 6'b000010;
 localparam MIPS_FUNC_SRA = 6'b000011;
 localparam MIPS_FUNC_JR = 6'b001000;
+localparam MIPS_FUNC_SRLV = 6'b000110;
 wire [15:0] mips_imm = inst[15:0];
 wire [25:0] mips_addr = inst[25:0];
 
@@ -154,6 +155,7 @@ always @(*) begin
 				_jmp = `JMP_ALWAYS;
 				_target_sel = `TARGET_Q1;
 			end
+			MIPS_FUNC_SRLV: _aluc = `ALU_SRL;
 			default: _wreg = 0;
 			endcase
 		end

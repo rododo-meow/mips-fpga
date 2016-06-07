@@ -4,15 +4,15 @@ ADDRESS_RADIX = HEX;
 DATA_RADIX = HEX;
 CONTENT
 BEGIN
-   0 : 50; -- main:      ori $4, $0, data                  # address of data[0]
+   0 : 1a; -- main:  jal init_vga
    1 : 00;
-   2 : 04;
-   3 : 34;
-   4 : 04; --            addi $5, $0, (data_end - data)/4  # counter
+   2 : 00;
+   3 : 0c;
+   4 : 00;
    5 : 00;
-   6 : 05;
-   7 : 20;
-   8 : 10; --            jal sum                           # call function
+   6 : 00;
+   7 : 00;
+   8 : 1d; --        jal init_seg
    9 : 00;
    A : 00;
    B : 0c;
@@ -20,87 +20,87 @@ BEGIN
    D : 00;
    E : 00;
    F : 00;
-  10 : 25; --            or $30, $0, $8                    # save result to $30
-  11 : f0;
-  12 : 08;
-  13 : 00;
-  14 : 78; --            jy86 y86entry                     # jump to y86 code
-  15 : 00;
-  16 : 00;
-  17 : e8;
-  18 : 00;
+  10 : 90; --        ori $29, $0, 400
+  11 : 01;
+  12 : 1d;
+  13 : 34;
+  14 : 58; --        ori $27, $0, 600
+  15 : 02;
+  16 : 1b;
+  17 : 34;
+  18 : 00; -- reset: ori $28, $0, 0
   19 : 00;
-  1A : 00;
-  1B : 00;
-  1C : 00; -- mips_back: lui $1, 0xf300                    # load KEY IO addr
-  1D : f3;
-  1E : 01;
-  1F : 3c;
-  20 : 04; -- wait:      lw $2, 4($1)
+  1A : 1c;
+  1B : 34;
+  1C : 23; -- loop:  jal clean_screen
+  1D : 00;
+  1E : 00;
+  1F : 0c;
+  20 : 00;
   21 : 00;
-  22 : 22;
-  23 : 8c;
-  24 : fe; --            bne $2, $0, wait                  # loop until KEY1 is pressed
-  25 : ff;
-  26 : 40;
-  27 : 14;
-  28 : 00;
-  29 : 00;
-  2A : 00;
+  22 : 00;
+  23 : 00;
+  24 : 25; --        or $1, $0, $29
+  25 : 08;
+  26 : 1d;
+  27 : 00;
+  28 : 25; --        or $2, $0, $28
+  29 : 10;
+  2A : 1c;
   2B : 00;
-  2C : 25; --            or $1, $30, $0                    # get result back
-  2D : 08;
-  2E : c0;
-  2F : 03;
-  30 : 1a; --            jal display                       # display
+  2C : 2a; --        jal draw_point
+  2D : 00;
+  2E : 00;
+  2F : 0c;
+  30 : 00;
   31 : 00;
   32 : 00;
-  33 : 0c;
-  34 : 00;
+  33 : 00;
+  34 : 01; --        addi $28, $28, 1
   35 : 00;
-  36 : 00;
-  37 : 00;
-  38 : 0e; -- halt:      j halt                            # dead loop
-  39 : 00;
-  3A : 00;
-  3B : 08;
+  36 : 9c;
+  37 : 23;
+  38 : f8; --        bne $28, $27, loop
+  39 : ff;
+  3A : 9b;
+  3B : 17;
   3C : 00;
   3D : 00;
   3E : 00;
   3F : 00;
-  40 : 20; -- sum:       add $8, $0, $0                    # sum
-  41 : 40;
+  40 : 06; --        j reset
+  41 : 00;
   42 : 00;
-  43 : 00;
-  44 : 00; -- loop:      lw $9, 0($4)                      # load data
+  43 : 08;
+  44 : 00;
   45 : 00;
-  46 : 89;
-  47 : 8c;
-  48 : 04; --            addi $4, $4, 4                    # address + 4
+  46 : 00;
+  47 : 00;
+  48 : 00; -- delay:  lui $1, ((20000000/4/40/2)>>16)
   49 : 00;
-  4A : 84;
-  4B : 20;
-  4C : 20; --            add $8, $8, $9                    # sum
-  4D : 40;
-  4E : 09;
-  4F : 01;
-  50 : ff; --            addi $5, $5, -1                   # counter - 1
-  51 : ff;
-  52 : a5;
-  53 : 20;
-  54 : fb; --            bne $5, $0, loop                  # finish?
-  55 : ff;
-  56 : a0;
-  57 : 14;
-  58 : 00;
-  59 : 00;
-  5A : 00;
-  5B : 00;
-  5C : 00; --            sll $2, $8, 0                     # move result to $v0
-  5D : 10;
-  5E : 08;
+  4A : 01;
+  4B : 3c;
+  4C : 24; --         ori $1, $1, ((20000000/4/40/2)&0xffff)
+  4D : f4;
+  4E : 21;
+  4F : 34;
+  50 : 00; --         ori $2, $0, 0
+  51 : 00;
+  52 : 02;
+  53 : 34;
+  54 : 01; -- delay1: addi $2, $2, 1
+  55 : 00;
+  56 : 42;
+  57 : 20;
+  58 : fe; --         bne $2, $1, delay1
+  59 : ff;
+  5A : 41;
+  5B : 14;
+  5C : 00;
+  5D : 00;
+  5E : 00;
   5F : 00;
-  60 : 08; --            jr $ra                            # return
+  60 : 08; --         jr $ra
   61 : 00;
   62 : e0;
   63 : 03;
@@ -108,159 +108,159 @@ BEGIN
   65 : 00;
   66 : 00;
   67 : 00;
-  68 : 00; -- display:   lui $2, 0xf000                    # load SEG IO addr
-  69 : f0;
-  6A : 02;
+  68 : 00; -- init_vga: lui $30, 0xf400
+  69 : f4;
+  6A : 1e;
   6B : 3c;
-  6C : 18; --            sw $1, 24($2)
+  6C : 08; --           jr $ra
   6D : 00;
-  6E : 41;
-  6F : ac;
-  70 : 08; --            jr $ra
+  6E : e0;
+  6F : 03;
+  70 : 00;
   71 : 00;
-  72 : e0;
-  73 : 03;
-  74 : 00;
-  75 : 00;
-  76 : 00;
-  77 : 00;
-  78 : 30; -- y86entry: irmovl $0, %eax
-  79 : f0;
-  7A : 00;
-  7B : 00;
+  72 : 00;
+  73 : 00;
+  74 : 00; -- init_seg: lui $26, 0xf000
+  75 : f0;
+  76 : 1a;
+  77 : 3c;
+  78 : 08; --           jr $ra
+  79 : 00;
+  7A : e0;
+  7B : 03;
   7C : 00;
   7D : 00;
-  7E : 20; --           rrmovl %eax, %ebx
-  7F : 03;
-  80 : 20; --           rrmovl %eax, %ecx
-  81 : 01;
-  82 : 20; --           rrmovl %eax, %edx
-  83 : 02;
-  84 : 30; --           irmovl stack, %esp
-  85 : f4;
-  86 : 00;
-  87 : 01;
+  7E : 00;
+  7F : 00;
+  80 : 18; -- print_num: sw $1, 24($26)
+  81 : 00;
+  82 : 41;
+  83 : af;
+  84 : 08; --            jr $ra
+  85 : 00;
+  86 : e0;
+  87 : 03;
   88 : 00;
   89 : 00;
-  8A : 30; --           irmovl stack, %ebp
-  8B : f5;
-  8C : 00;
-  8D : 01;
-  8E : 00;
-  8F : 00;
-  90 : 80; --           call y86main
-  91 : 9a;
-  92 : 00;
-  93 : 00;
-  94 : 00;
-  95 : c0; --           jmips mips_back
-  96 : 1c;
-  97 : 00;
-  98 : 00;
-  99 : 00;
-  9A : a0; -- y86main:  pushl %ebp
-  9B : 5f;
-  9C : 20; --           rrmovl %esp, %ebp
-  9D : 45;
-  9E : 30; --           irmovl (data2_end - data2)/4, %eax
-  9F : f0;
-  A0 : 04;
+  8A : 00;
+  8B : 00;
+  8C : 00; -- clean_screen: addi $1, $30, (1024*600/32)
+  8D : 4b;
+  8E : c1;
+  8F : 23;
+  90 : 00; -- clean_loop:   sw $0, 0($1)
+  91 : 00;
+  92 : 20;
+  93 : ac;
+  94 : fc; --               addi $1, $1, -4
+  95 : ff;
+  96 : 21;
+  97 : 20;
+  98 : fd; --               bne $1, $30, clean_loop
+  99 : ff;
+  9A : 3e;
+  9B : 14;
+  9C : 00;
+  9D : 00;
+  9E : 00;
+  9F : 00;
+  A0 : 08; --               jr $ra
   A1 : 00;
-  A2 : 00;
-  A3 : 00;
-  A4 : a0; --           pushl %eax
-  A5 : 0f;
-  A6 : 30; --           irmovl data2, %edx
-  A7 : f2;
-  A8 : 60;
-  A9 : 00;
-  AA : 00;
+  A2 : e0;
+  A3 : 03;
+  A4 : 00;
+  A5 : 00;
+  A6 : 00;
+  A7 : 00;
+  A8 : 25; -- draw_point:   or $4, $0, $31
+  A9 : 20;
+  AA : 1f;
   AB : 00;
-  AC : a0; --           pushl %edx
-  AD : 2f;
-  AE : 80; --           call Sum
-  AF : bd;
-  B0 : 00;
-  B1 : 00;
-  B2 : 00;
-  B3 : 80; --           call Display
-  B4 : f8;
+  AC : 80; --               sll $2, $2, 10
+  AD : 12;
+  AE : 02;
+  AF : 00;
+  B0 : 25; --               or $1, $1, $2
+  B1 : 08;
+  B2 : 22;
+  B3 : 00;
+  B4 : 1f; --               andi $2, $1, 31
   B5 : 00;
-  B6 : 00;
-  B7 : 00;
-  B8 : 20; --           rrmovl %ebp, %esp
-  B9 : 54;
-  BA : b0; --           popl %ebp
-  BB : 5f;
-  BC : 90; --           ret
-  BD : a0; -- Sum:      pushl %ebp
-  BE : 5f;
-  BF : 20; --           rrmovl %esp, %ebp
-  C0 : 45;
-  C1 : 50; --           mrmovl 8(%ebp), %ecx # ecx = Start
-  C2 : 15;
-  C3 : 08;
-  C4 : 00;
-  C5 : 00;
-  C6 : 00;
-  C7 : 50; --           mrmovl 12(%ebp), %edx # edx = Count
-  C8 : 25;
-  C9 : 0c;
-  CA : 00;
-  CB : 00;
-  CC : 00;
-  CD : 63; --           xorl %eax,%eax # sum = 0
-  CE : 00;
-  CF : 62; --           andl %edx,%edx # test
-  D0 : 22;
-  D1 : 73; --           je End
-  D2 : f3;
+  B6 : 22;
+  B7 : 30;
+  B8 : 42; --               srl $1, $1, 5
+  B9 : 09;
+  BA : 01;
+  BB : 00;
+  BC : 00; --               lui $3, 0x8000
+  BD : 80;
+  BE : 03;
+  BF : 3c;
+  C0 : 06; --               srlv $3, $3, $2
+  C1 : 18;
+  C2 : 62;
+  C3 : 00;
+  C4 : 20; --               add $1, $1, $30
+  C5 : 08;
+  C6 : 3e;
+  C7 : 00;
+  C8 : 00; --               sw $3, 0($1)
+  C9 : 00;
+  CA : 23;
+  CB : ac;
+  CC : 08; --               jr $4
+  CD : 00;
+  CE : 80;
+  CF : 00;
+  D0 : 00;
+  D1 : 00;
+  D2 : 00;
   D3 : 00;
   D4 : 00;
   D5 : 00;
-  D6 : 50; -- Loop:     mrmovl (%ecx),%esi # get *Start
-  D7 : 61;
+  D6 : 00;
+  D7 : 00;
   D8 : 00;
   D9 : 00;
   DA : 00;
   DB : 00;
-  DC : 60; --           addl %esi, %eax # add to sum
-  DD : 60;
-  DE : 30; --           irmovl $4, %ebx
-  DF : f3;
-  E0 : 04;
+  DC : 00;
+  DD : 00;
+  DE : 00;
+  DF : 00;
+  E0 : 00;
   E1 : 00;
   E2 : 00;
   E3 : 00;
-  E4 : 60; --           addl %ebx,%ecx # Start++
-  E5 : 31;
-  E6 : 30; --           irmovl $-1,%ebx
-  E7 : f3;
-  E8 : ff;
-  E9 : ff;
-  EA : ff;
-  EB : ff;
-  EC : 60; --           addl %ebx,%edx # Count--
-  ED : 32;
-  EE : 74; --           jne Loop # Stop until Count == 0
-  EF : d6;
+  E4 : 00;
+  E5 : 00;
+  E6 : 00;
+  E7 : 00;
+  E8 : 00;
+  E9 : 00;
+  EA : 00;
+  EB : 00;
+  EC : 00;
+  ED : 00;
+  EE : 00;
+  EF : 00;
   F0 : 00;
   F1 : 00;
   F2 : 00;
-  F3 : 20; -- End:      rrmovl %ebp, %esp
-  F4 : 54;
-  F5 : b0; --           popl %ebp
-  F6 : 5f;
-  F7 : 90; --           ret
-  F8 : 63; -- Display:  xorl %ebx, %ebx
-  F9 : 33;
-  FA : 40; --           rmmovl %eax, 0xf0000012(%ebx)
-  FB : 03;
-  FC : 12;
+  F3 : 00;
+  F4 : 00;
+  F5 : 00;
+  F6 : 00;
+  F7 : 00;
+  F8 : 00;
+  F9 : 00;
+  FA : 00;
+  FB : 00;
+  FC : 00;
   FD : 00;
   FE : 00;
-  FF : f0;
- 100 : 90; --           ret
+  FF : 00;
+ 100 : 00;
  101 : 00;
  102 : 00;
  103 : 00;

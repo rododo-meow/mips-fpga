@@ -67,7 +67,7 @@ End:      rrmovl %ebp, %esp
           ret
 
 Display:  xorl %ebx, %ebx
-          rmmovl %eax, 0xf0000012(%ebx)
+          rmmovl %eax, 0xf0000018(%ebx)
           ret
 
 .data

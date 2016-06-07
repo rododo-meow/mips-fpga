@@ -1,10 +1,12 @@
 module sc_hub(resetn, addr, datain, dataout, we, clk, wmem, memout,
-	LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5, SW, KEY);
+	LED, SEG0, SEG1, SEG2, SEG3, SEG4, SEG5, SW, KEY,
+	vga_clk, VGA_R, VGA_G, VGA_B, VGA_HS, VGA_VS, VGA_BLANK_N, VGA_SYNC_N, VGA_CLK);
 localparam ADDR_IO  = 32'hf0000000;
 localparam ADDR_SEG = 32'hf0000000;
 localparam ADDR_LED = 32'hf1000000;
 localparam ADDR_SW  = 32'hf2000000;
 localparam ADDR_KEY = 32'hf3000000;
+localparam ADDR_VGA = 32'hf4000000;
 
 input [31:0] addr, datain, memout;
 input we, clk, resetn;
@@ -14,6 +16,9 @@ output [31:0] dataout;
 output wmem;
 output [9:0] LED;
 output [6:0] SEG0, SEG1, SEG2, SEG3, SEG4, SEG5;
+input vga_clk;
+output [7:0] VGA_R, VGA_G, VGA_B;
+output VGA_HS, VGA_VS, VGA_BLANK_N, VGA_SYNC_N, VGA_CLK;
 
 wire target_io  = addr[31:28] == ADDR_IO[31:28];
 wire target_mem = ~target_io;
@@ -39,7 +44,7 @@ io_pio_output #(.WIDTH(10)) led_pio(
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.datain(datain),
-	.we(we & addr[27:24] == ADDR_LED[27:24]),
+	.we(we && addr[27:24] == ADDR_LED[27:24] && target_io),
 	.pio(LED)
 );
 
@@ -48,7 +53,7 @@ io_pio_output #(.WIDTH(24), .GROUP(4)) seg_pio(
 	.resetn(resetn),
 	.addr(addr[7:0]),
 	.datain(datain),
-	.we(we & addr[27:24] == ADDR_SEG[27:24]),
+	.we(we && addr[27:24] == ADDR_SEG[27:24] && target_io),
 	.pio(seg_buf)
 );
 
@@ -66,6 +71,15 @@ io_pio_input #(.WIDTH(10)) sw_pio(
 	.addr(addr[7:0]),
 	.dataout(sw_dataout),
 	.pio(SW)
+);
+
+io_vga vga(
+	.clk(clk), .resetn(resetn),
+	.addr(addr[23:0]), .datain(datain),
+	.we(we && addr[27:24] == ADDR_VGA[27:24] && target_io),
+	.vga_clk(vga_clk),
+	.VGA_R(VGA_R), .VGA_G(VGA_G), .VGA_B(VGA_B),
+	.VGA_HS(VGA_HS), .VGA_VS(VGA_VS), .VGA_BLANK_N(VGA_BLANK_N), .VGA_SYNC_N(VGA_SYNC_N), .VGA_CLK(VGA_CLK)
 );
 
 segdriver seg0(
