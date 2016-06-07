@@ -16,6 +16,7 @@ module alu (a,b,aluc,s);
              `ALU_SRL:  s = a >> b;             //0111 SRL: rd <- (rt >> sa) (logical)
              `ALU_SRA:  s = $signed(a) >>> b;   //1111 SRA: rd <- (rt >> sa) (arithmetic)
 				 `ALU_SUB4: s = a - 4;
+				 `ALU_RSUB: s = b - a;
              default: s = 0;
          endcase       
       end      

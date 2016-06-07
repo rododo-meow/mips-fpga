@@ -174,6 +174,7 @@ class Assembler:
         self.y86_ins += self.__make("y86", "RR", "Subl")
         self.y86_ins += self.__make("y86", "RR", "Andl")
         self.y86_ins += self.__make("y86", "RR", "Xorl")
+        self.y86_ins += self.__make("y86", "RR", "Orl")
         self.y86_ins += self.__make("y86", "I", "Jmp")
         self.y86_ins += self.__make("y86", "IC", "J")
         self.y86_ins += self.__make("y86", "RRC", "Cmov")
@@ -182,6 +183,11 @@ class Assembler:
         self.y86_ins += self.__make("y86", "R", "Pushl")
         self.y86_ins += self.__make("y86", "R", "Popl")
         self.y86_ins += self.__make("y86", "I", "JMIPS")
+        self.y86_ins += self.__make("y86", "RI", "Cmpi")
+        self.y86_ins += self.__make("y86", "RR", "Cmpl")
+        self.y86_ins += self.__make("y86", "IR", "Iaddl")
+        self.y86_ins += self.__make("y86", "IR", "Isubl")
+        self.y86_ins += self.__make("y86", "RI", "Slli")
         self.asm_ins += self.__make("asm", "0", "Text")
         self.asm_ins += self.__make("asm", "I", "Org")
         self.asm_ins += self.__make("asm", "0", "Data")
@@ -440,6 +446,10 @@ class Assembler:
         return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s+(%%REG)\s*%%COMMENT?$"))
     def __y86_resolvR(func):
         return lambda match: func(__resolvY86Reg(match.group(1)), __cut_tail_newline(match.group(0)))
+    def __y86_generateRI(name):
+        return re.compile(__applyTemplate(__y86Temp, r"^(?:\s*%%ID\s*:)?\s*" + name + r"\s+(%%REG)\s*,\s*(%%IMM)\s*%%COMMENT?$"))
+    def __y86_resolvRI(func):
+        return lambda match: func(__resolvY86Reg(match.group(1)), match.group(2), __cut_tail_newline(match.group(0)))
 
     def __y86_IssueHalt(self, comment):
         self.__issue(__make_y86_ins("1", 0x00), comment)
@@ -464,6 +474,8 @@ class Assembler:
         self.__issue(__make_y86_ins("2", 0x62, ra, rb), comment)
     def __y86_IssueXorl(self, ra, rb, comment):
         self.__issue(__make_y86_ins("2", 0x63, ra, rb), comment)
+    def __y86_IssueOrl(self, ra, rb, comment):
+        self.__issue(__make_y86_ins("2", 0x64, ra, rb), comment)
     def __y86_IssueJmp(self, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0x70, 0), comment)
         self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
@@ -484,6 +496,22 @@ class Assembler:
     def __y86_IssueJMIPS(self, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0xc0, 0), comment)
         self.reloc += __make_reloc("Y86_MIPS_ADDR", ( addr[0], addr[1] + 1 ), Dest)
+
+    def __y86_IssueCmpi(self, ra, V, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xe6, ra, 0xf, 0), comment)
+        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueCmpl(self, ra, rb, comment):
+        self.__issue(__make_y86_ins("2", 0x66, ra, rb), comment)
+
+    def __y86_IssueIaddl(self, V, rb, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xd0, 0xf, rb, 0), comment)
+        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueIsubl(self, V, rb, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xd1, 0xf, rb, 0), comment)
+        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueSlli(self, ra, V, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xe5, ra, 0xf, 0), comment)
+        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
 
     def __asm_generate0(name):
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+(#.*)?$")

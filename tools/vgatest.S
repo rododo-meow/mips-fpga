@@ -3,7 +3,10 @@
 main: lui $1, 0xf400
       lui $2, 0xffff
       ori $2, $2, 0xffff
+      lui $3, 0xf4ff
+      ori $3, $3, 0xfffc
 loop: sw $2, 0($1)
+      sw $2, 0($3)
       jal delay
       addi $1, $1, 1 
       j loop

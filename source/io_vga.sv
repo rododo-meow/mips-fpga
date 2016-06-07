@@ -23,22 +23,22 @@ wire q1, q2;
 reg bindex;
 
 vga_buf vga_buf1(
-	.data(datain),
+	.data(datain != 0),
 	.rdaddress({y,x}),
 	.rdclock(~vga_clk),
-	.wraddress(addr[14:0]),
+	.wraddress(addr[19:0]),
 	.wrclock(clk),
-	.wren(bindex & we & (addr[23:15] == 0)),
+	.wren(bindex & we & (addr[23:20] == 0)),
 	.q(q1)
 );
 
 vga_buf vga_buf2(
-	.data(datain),
+	.data(datain != 0),
 	.rdaddress({y,x}),
 	.rdclock(~vga_clk),
-	.wraddress(addr[14:0]),
+	.wraddress(addr[19:0]),
 	.wrclock(clk),
-	.wren(~bindex & we & (addr[23:15] == 0)),
+	.wren(~bindex & we & (addr[23:20] == 0)),
 	.q(q2)
 );
 

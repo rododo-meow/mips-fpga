@@ -289,6 +289,12 @@ always @(*) begin
 			`Y86_FUNC_SUB: _aluc = `ALU_SUB;
 			`Y86_FUNC_AND: _aluc = `ALU_AND;
 			`Y86_FUNC_XOR: _aluc = `ALU_XOR;
+			`Y86_FUNC_OR:  _aluc = `ALU_OR;
+			`Y86_FUNC_SLL: _aluc = `ALU_SLL;
+			`Y86_FUNC_CMP: begin
+				_aluc = `ALU_SUB;
+				_wreg = 0;
+			end
 			default: _aluc = `ALU_ADD;
 			endcase
 		end
@@ -359,6 +365,50 @@ always @(*) begin
 			_do_jmp = 1;
 			_target_pc = y86_Dest;
 			_target_mode = 0;
+		end
+		`Y86_OP_IOPL: begin
+			_ra = y86_rb + 5'd1;
+			_need_ra = 1;
+			_rn = _ra;
+			_wreg = 1;
+			_setcond = 1;
+			_imm = y86_V;
+			_useimm = 1;
+			case (y86_func)
+			`Y86_FUNC_ADD: _aluc = `ALU_ADD;
+			`Y86_FUNC_SUB: _aluc = `ALU_RSUB;
+			`Y86_FUNC_AND: _aluc = `ALU_AND;
+			`Y86_FUNC_XOR: _aluc = `ALU_XOR;
+			`Y86_FUNC_OR:  _aluc = `ALU_OR;
+			`Y86_FUNC_SLL: _aluc = `ALU_RSLL;
+			`Y86_FUNC_CMP: begin
+				_aluc = `ALU_RSUB;
+				_wreg = 0;
+			end
+			default: _aluc = `ALU_ADD;
+			endcase
+		end
+		`Y86_OP_OPIL: begin
+			_ra = y86_ra + 5'd1;
+			_need_ra = 1;
+			_rn = _ra;
+			_wreg = 1;
+			_setcond = 1;
+			_imm = y86_V;
+			_useimm = 1;
+			case (y86_func)
+			`Y86_FUNC_ADD: _aluc = `ALU_ADD;
+			`Y86_FUNC_SUB: _aluc = `ALU_SUB;
+			`Y86_FUNC_AND: _aluc = `ALU_AND;
+			`Y86_FUNC_XOR: _aluc = `ALU_XOR;
+			`Y86_FUNC_OR:  _aluc = `ALU_OR;
+			`Y86_FUNC_SLL: _aluc = `ALU_SLL;
+			`Y86_FUNC_CMP: begin
+				_aluc = `ALU_SUB;
+				_wreg = 0;
+			end
+			default: _aluc = `ALU_ADD;
+			endcase
 		end
 		default: begin
 		end
