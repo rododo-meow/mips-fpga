@@ -187,6 +187,7 @@ class Assembler:
         self.y86_ins += self.__make("y86", "RR", "Cmpl")
         self.y86_ins += self.__make("y86", "IR", "Iaddl")
         self.y86_ins += self.__make("y86", "IR", "Isubl")
+        self.y86_ins += self.__make("y86", "IR", "Iorl")
         self.y86_ins += self.__make("y86", "RI", "Slli")
         self.asm_ins += self.__make("asm", "0", "Text")
         self.asm_ins += self.__make("asm", "I", "Org")
@@ -195,6 +196,7 @@ class Assembler:
         self.asm_ins += self.__make("asm", "Null", "Null")
         self.asm_ins += self.__make("asm", "0", "MIPS")
         self.asm_ins += self.__make("asm", "0", "Y86")
+        self.asm_ins += self.__make("asm", "Define", "Define")
         self.instmem = Memory(0, 1)
         self.datamem = Memory(0, 1)
         self.label = {}
@@ -203,6 +205,7 @@ class Assembler:
         self.reloc = []
         self.mode = "MIPS"
         self.sect = "text"
+        self.defines = {}
 
     def __make(self, isa, type, name):
         return [ [ Assembler.__dict__["_Assembler__" + isa + "_generate" + type](name.lower()), Assembler.__dict__["_Assembler__" + isa + "_resolv" + type](__bind(Assembler.__dict__["_Assembler__" + isa + "_Issue" + name], self)) ] ]
@@ -238,6 +241,13 @@ class Assembler:
 
     def relocate(self):
         for r in self.reloc:
+            tmp = r[2]
+            while True:
+                for d in self.defines.keys():
+                    tmp = tmp.replace(d, self.defines[d])
+                if tmp == r[2]:
+                    break
+                r[2] = tmp
             try:
                 if r[0] == "MIPS_IMM":
                     imm = eval(r[2], self.label)
@@ -509,6 +519,9 @@ class Assembler:
     def __y86_IssueIsubl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd1, 0xf, rb, 0), comment)
         self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueIorl(self, V, rb, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xd4, 0xf, rb, 0), comment)
+        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueSlli(self, ra, V, comment):
         addr = self.__issue(__make_y86_ins("6", 0xe5, ra, 0xf, 0), comment)
         self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
@@ -529,6 +542,10 @@ class Assembler:
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*(#.*)?$")
     def __asm_resolvNull(func):
         return lambda match: func()
+    def __asm_generateDefine(name):
+        return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([^#\r\n \t]+)\s+([^#\r\n]+)\s+(#.*)?$")
+    def __asm_resolvDefine(func):
+        return lambda match: func(match.group(1), match.group(2), __cut_tail_newline(match.group(0)))
 
     def __asm_IssueText(self):
         self.sect = "text"
@@ -550,6 +567,8 @@ class Assembler:
         self.mode = "MIPS"
     def __asm_IssueY86(self):
         self.mode = "Y86"
+    def __asm_IssueDefine(self, name, value, comment):
+        self.defines[name] = value
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
