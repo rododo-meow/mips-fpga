@@ -17,9 +17,6 @@ def _Assembler__resolvMipsReg(name):
     else:
         return int(name)
 
-def _Assembler__make_reloc(type, addr, value):
-    return [ [ type, addr, value ] ]
-
 def _Assembler__make_mips_ins(type, *args):
     if type == "R":
         if len(args) != 6 or \
@@ -206,11 +203,18 @@ class Assembler:
         self.mode = "MIPS"
         self.sect = "text"
         self.defines = {}
+        self.globals = {}
+        self.exports = []
+        self.externs = []
 
     def __make(self, isa, type, name):
         return [ [ Assembler.__dict__["_Assembler__" + isa + "_generate" + type](name.lower()), Assembler.__dict__["_Assembler__" + isa + "_resolv" + type](__bind(Assembler.__dict__["_Assembler__" + isa + "_Issue" + name], self)) ] ]
 
+    def __make_reloc(self, type, addr, value):
+        return [ [ type, addr, value, self.defines ] ]
+
     def compile(self, filename):
+        self.defines = {}
         with open(filename, "r") as f:
             for l in f.readlines():
                 if self.re_label.match(l):
@@ -238,6 +242,13 @@ class Assembler:
                             break
                 if not succ:
                     raise BaseException("No such instruction %s" % (l))
+        for i in self.exports:
+            if not self.defines.has_key(i):
+                raise BaseException("No such local variable %s to export" % (i))
+            if self.globals.has_key(i):
+                raise BaseException("Duplicated export of %s" % (i))
+            self.globals[i] = self.defines[i]
+            del self.defines[i]
 
     def relocate(self):
         for r in self.reloc:
@@ -372,44 +383,44 @@ class Assembler:
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueAddi(self, rt, rs, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x08, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueAndi(self, rt, rs, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x0c, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueOri(self, rt, rs, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x0d, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueXori(self, rt, rs, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x0e, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueLw(self, rt, imm, rs, comment):
         addr = self.__issue(__make_mips_ins("I", 0x23, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueSw(self, rt, imm, rs, comment):
         addr = self.__issue(__make_mips_ins("I", 0x2b, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueBeq(self, rs, rt, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x04, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_OFF", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_OFF", addr, imm)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueBne(self, rs, rt, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x05, rs, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_OFF", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_OFF", addr, imm)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueLui(self, rt, imm, comment):
         addr = self.__issue(__make_mips_ins("I", 0x0f, 0, rt, 0), comment)
-        self.reloc += __make_reloc("MIPS_IMM", addr, imm)
+        self.reloc += self.__make_reloc("MIPS_IMM", addr, imm)
     def __mips_IssueJ(self, addr, comment):
         myaddr = self.__issue(__make_mips_ins("J", 0x02, 0), comment)
-        self.reloc += __make_reloc("MIPS_ADDR", myaddr, addr)
+        self.reloc += self.__make_reloc("MIPS_ADDR", myaddr, addr)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueJal(self, addr, comment):
         myaddr = self.__issue(__make_mips_ins("J", 0x03, 0), comment)
-        self.reloc += __make_reloc("MIPS_ADDR", myaddr, addr)
+        self.reloc += self.__make_reloc("MIPS_ADDR", myaddr, addr)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueJY86(self, addr, comment):
         myaddr = self.__issue(__make_mips_ins("J", 0x3a, 0), comment)
-        self.reloc += __make_reloc("MIPS_Y86_ADDR", myaddr, addr)
+        self.reloc += self.__make_reloc("MIPS_Y86_ADDR", myaddr, addr)
         self.__issue(__make_mips_ins("R", 0, 0, 0, 0, 0, 0), None)
     def __mips_IssueSrlv(self, rd, rs, rt, comment):
         self.__issue(__make_mips_ins("R", 0, rs, rt, rd, 0, 0x06), comment)
@@ -469,13 +480,13 @@ class Assembler:
         self.__issue(__make_y86_ins("2", 0x20, ra, rb), comment)
     def __y86_IssueIrmovl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0x30, 0xf, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueRmmovl(self, ra, D, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0x40, ra, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), D)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), D)
     def __y86_IssueMrmovl(self, D, rb, ra, comment):
         addr = self.__issue(__make_y86_ins("6", 0x50, ra, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), D)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), D)
     def __y86_IssueAddl(self, ra, rb, comment):
         self.__issue(__make_y86_ins("2", 0x60, ra, rb), comment)
     def __y86_IssueSubl(self, ra, rb, comment):
@@ -488,15 +499,15 @@ class Assembler:
         self.__issue(__make_y86_ins("2", 0x64, ra, rb), comment)
     def __y86_IssueJmp(self, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0x70, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
     def __y86_IssueJ(self, cond, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0x70 | cond, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
     def __y86_IssueCmov(self, ra, rb, comment):
         self.__issue(__make_y86_ins("2", 0x20 | cond, ra, rb), comment)
     def __y86_IssueCall(self, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0x80, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 1 ), Dest)
     def __y86_IssueRet(self, comment):
         self.__issue(__make_y86_ins("1", 0x90), comment)
     def __y86_IssuePushl(self, ra, comment):
@@ -505,26 +516,26 @@ class Assembler:
         self.__issue(__make_y86_ins("2", 0xb0, ra, 0xf), comment)
     def __y86_IssueJMIPS(self, Dest, comment):
         addr = self.__issue(__make_y86_ins("5", 0xc0, 0), comment)
-        self.reloc += __make_reloc("Y86_MIPS_ADDR", ( addr[0], addr[1] + 1 ), Dest)
+        self.reloc += self.__make_reloc("Y86_MIPS_ADDR", ( addr[0], addr[1] + 1 ), Dest)
 
     def __y86_IssueCmpi(self, ra, V, comment):
         addr = self.__issue(__make_y86_ins("6", 0xe6, ra, 0xf, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueCmpl(self, ra, rb, comment):
         self.__issue(__make_y86_ins("2", 0x66, ra, rb), comment)
 
     def __y86_IssueIaddl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd0, 0xf, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueIsubl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd1, 0xf, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueIorl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd4, 0xf, rb, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueSlli(self, ra, V, comment):
         addr = self.__issue(__make_y86_ins("6", 0xe5, ra, 0xf, 0), comment)
-        self.reloc += __make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
 
     def __asm_generate0(name):
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+(#.*)?$")
@@ -560,7 +571,7 @@ class Assembler:
             raise BaseException("Unknown section '%s'" % (self.sect))
     def __asm_IssueWord(self, data, comment):
         addr = self.__issue([0] * 4, comment)
-        self.reloc += __make_reloc("WORD", addr, data)
+        self.reloc += self.__make_reloc("WORD", addr, data)
     def __asm_IssueNull(self):
         pass
     def __asm_IssueMIPS(self):
