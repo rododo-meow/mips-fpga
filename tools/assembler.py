@@ -194,6 +194,8 @@ class Assembler:
         self.asm_ins += self.__make("asm", "0", "MIPS")
         self.asm_ins += self.__make("asm", "0", "Y86")
         self.asm_ins += self.__make("asm", "Define", "Define")
+        self.asm_ins += self.__make("asm", "Name", "Global")
+        self.asm_ins += self.__make("asm", "Name", "Extern")
         self.instmem = Memory(0, 1)
         self.datamem = Memory(0, 1)
         self.label = {}
@@ -215,6 +217,8 @@ class Assembler:
 
     def compile(self, filename):
         self.defines = {}
+        self.exports = []
+        self.externs = []
         with open(filename, "r") as f:
             for l in f.readlines():
                 if self.re_label.match(l):
@@ -243,12 +247,14 @@ class Assembler:
                 if not succ:
                     raise BaseException("No such instruction %s" % (l))
         for i in self.exports:
-            if not self.defines.has_key(i):
+            if not self.label.has_key(i):
                 raise BaseException("No such local variable %s to export" % (i))
             if self.globals.has_key(i):
                 raise BaseException("Duplicated export of %s" % (i))
-            self.globals[i] = self.defines[i]
-            del self.defines[i]
+            self.globals[i] = self.label[i]
+        self.exports = []
+        self.externs = []
+
 
     def relocate(self):
         for r in self.reloc:
@@ -557,6 +563,10 @@ class Assembler:
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([^#\r\n \t]+)\s+([^#\r\n]+)\s+(#.*)?$")
     def __asm_resolvDefine(func):
         return lambda match: func(match.group(1), match.group(2), __cut_tail_newline(match.group(0)))
+    def __asm_generateName(name):
+        return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([^#\r\n \t]+)\s*(#.*)?$")
+    def __asm_resolvName(func):
+        return lambda match: func(match.group(1), __cut_tail_newline(match.group(0)))
 
     def __asm_IssueText(self):
         self.sect = "text"
@@ -580,6 +590,10 @@ class Assembler:
         self.mode = "Y86"
     def __asm_IssueDefine(self, name, value, comment):
         self.defines[name] = value
+    def __asm_IssueGlobal(self, name, comment):
+        self.exports += [ name ]
+    def __asm_IssueExtern(self, name, comment):
+        self.externs += [ name ]
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

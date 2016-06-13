@@ -11,9 +11,13 @@ def main():
     if sys.argv[1] != '-':
         instmif = MifFile(sys.argv[1])
         instmif.init(int(sys.argv[2]), 1)
+    else:
+        instmif = None
     if sys.argv[3] != '-':
         datamif = MifFile(sys.argv[3])
         datamif.init(int(sys.argv[4]), 4)
+    else:
+        datamif = None
     assembler = Assembler()
     for filename in sys.argv[5:]:
         assembler.compile(filename)
