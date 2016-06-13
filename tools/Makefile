@@ -5,12 +5,18 @@ DATAMEM_SIZE=256
 
 build-%: %.inst.mif
 	@exit 0
-	
+
 %.inst.mif: %.S compiler.py memory.py assembler.py mifutil.py
 	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) $*.data.mif $(DATAMEM_SIZE) $*.S
 
 %.data.mif: %.S compiler.py memory.py assembler.py mifutil.py
 	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) $*.data.mif $(DATAMEM_SIZE) $*.S
+
+test.inst.mif: a.S b.S
+	@./compiler.py $@ $(INSTMEM_SIZE) - - $<
+
+test.data.mif: a.S b.S
+	@./compiler.py - - $@ $(DATAMEM_SIZE) $<
 
 install-%: %.inst.mif %.data.mif
 	@cp $*.inst.mif ../source/sc_instmem.mif
