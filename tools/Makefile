@@ -1,27 +1,30 @@
 .PHONY: clean
 
-INSTMEM_SIZE=1024
-DATAMEM_SIZE=256
+INSTMEM_SIZE=2048
+DATAMEM_SIZE=4096
 
-build-%: %.inst.mif
+MENU_APP = helloworld.S y86ballgame.S y86ball.S
+LIBS := print.S key.S vga.S
+
+build-%: %.inst.mif %.data.mif
 	@exit 0
 
 %.inst.mif: %.S compiler.py memory.py assembler.py mifutil.py
-	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) $*.data.mif $(DATAMEM_SIZE) $*.S
+	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) - - $*.S
 
 %.data.mif: %.S compiler.py memory.py assembler.py mifutil.py
-	@./compiler.py $*.inst.mif $(INSTMEM_SIZE) $*.data.mif $(DATAMEM_SIZE) $*.S
-
-test.inst.mif: b.S a.S
-	@./compiler.py $@ $(INSTMEM_SIZE) - - $^
-
-test.data.mif: b.S a.S
-	@./compiler.py - - $@ $(DATAMEM_SIZE) $^
+	@./compiler.py - - $*.data.mif $(DATAMEM_SIZE) $*.S
 
 install-%: %.inst.mif %.data.mif
 	@cp $*.inst.mif ../source/sc_instmem.mif
 	@cp $*.data.mif ../source/sc_datamem.mif
-	@cp ../source/sc_instmem.mif ../source/sc_datamem.mif ../modelsim/
+	@cp ../source/sc_instmem.mif ../source/sc_datamem.mif ../modelsim/source/
+
+app.inst.mif: menu.S $(MENU_APP) $(LIBS)
+	@./compiler.py $@ $(INSTMEM_SIZE) - -  $^
+
+app.data.mif: menu.S $(MENU_APP) $(LIBS)
+	@./compiler.py - - $@ $(DATAMEM_SIZE) $^
 
 clean:
 	@rm -f *.mif
