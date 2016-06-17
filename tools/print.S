@@ -1,0 +1,560 @@
+.y86
+print_string:
+    pushl %edx
+    rrmovl %eax, %edx
+print_string_loop:
+    mrmovl (%edx), %eax
+    cmpi %eax, $0
+    je print_string_ret
+    pushl %ebx
+    pushl %ecx
+    call print_char
+    popl %ecx
+    popl %ebx
+    iaddl $7, %ebx
+    iaddl $4, %edx
+    jmp print_string_loop
+print_string_ret:
+    popl %edx
+    ret
+
+print_char:
+    pushl %esi
+    pushl %edx
+
+    # get addr of (x,y) in display buffer
+    rrmovl %ecx, %esi
+    slli %esi, $10
+    addl %ebx, %esi
+    iaddl $0xf4000000, %esi
+
+    # get addr of char eax in character library
+    subi %eax, $32
+    jl print_ret
+    rrmovl %eax, %ecx
+    addl %ecx, %ecx
+    addl %ecx, %ecx
+    addl %ecx, %eax
+    slli %eax, 2
+    iaddl zk, %eax
+
+    # print the character
+    irmovl $5, %edx
+print_loop:
+    mrmovl (%eax), %ecx
+    rrmovl %ecx, %ebx
+    iandl $1, %ebx
+    rmmovl %ebx, (%esi)
+    rrmovl %ecx, %ebx
+    iandl $2, %ebx
+    rmmovl %ebx, 1024(%esi)
+    rrmovl %ecx, %ebx
+    iandl $4, %ebx
+    rmmovl %ebx, 1024*2(%esi)
+    rrmovl %ecx, %ebx
+    iandl $8, %ebx
+    rmmovl %ebx, 1024*3(%esi)
+    rrmovl %ecx, %ebx
+    iandl $16, %ebx
+    rmmovl %ebx, 1024*4(%esi)
+    rrmovl %ecx, %ebx
+    iandl $32, %ebx
+    rmmovl %ebx, 1024*5(%esi)
+    rrmovl %ecx, %ebx
+    iandl $64, %ebx
+    rmmovl %ebx, 1024*6(%esi)
+    iaddl $4, %eax
+    iaddl $1, %esi
+    subi %edx, $1
+    jne print_loop
+
+print_ret:
+    popl %edx
+    popl %esi
+    ret
+
+.export print_char
+.export print_string
+
+.data
+zk:
+    .word 0x00
+    .word 0x00
+    .word 0x00
+    .word 0x00
+    .word 0x00 # ''
+    .word 0x00
+    .word 0x00
+    .word 0x5F
+    .word 0x00
+    .word 0x00 # !
+    .word 0x00
+    .word 0x07
+    .word 0x00
+    .word 0x07
+    .word 0x00 # "
+    .word 0x14
+    .word 0x7F
+    .word 0x14
+    .word 0x7F
+    .word 0x14 # #
+    .word 0x24
+    .word 0x2A
+    .word 0x07
+    .word 0x2A
+    .word 0x12 # $
+    .word 0x23
+    .word 0x13
+    .word 0x08
+    .word 0x64
+    .word 0x62 # %
+    .word 0x37
+    .word 0x49
+    .word 0x55
+    .word 0x22
+    .word 0x50 # &
+    .word 0x00
+    .word 0x05
+    .word 0x03
+    .word 0x00
+    .word 0x00 # '
+    .word 0x00
+    .word 0x1C
+    .word 0x22
+    .word 0x41
+    .word 0x00 # (
+    .word 0x00
+    .word 0x41
+    .word 0x22
+    .word 0x1C
+    .word 0x00 # )
+    .word 0x08
+    .word 0x2A
+    .word 0x1C
+    .word 0x2A
+    .word 0x08 # *
+    .word 0x08
+    .word 0x08
+    .word 0x3E
+    .word 0x08
+    .word 0x08 # +
+    .word 0x00
+    .word 0x50
+    .word 0x30
+    .word 0x00
+    .word 0x00 # ,
+    .word 0x08
+    .word 0x08
+    .word 0x08
+    .word 0x08
+    .word 0x08 # -
+    .word 0x00
+    .word 0x60
+    .word 0x60
+    .word 0x00
+    .word 0x00 # .
+    .word 0x20
+    .word 0x10
+    .word 0x08
+    .word 0x04
+    .word 0x02 # /
+    .word 0x3E
+    .word 0x51
+    .word 0x49
+    .word 0x45
+    .word 0x3E # 0
+    .word 0x00
+    .word 0x42
+    .word 0x7F
+    .word 0x40
+    .word 0x00 # 1
+    .word 0x42
+    .word 0x61
+    .word 0x51
+    .word 0x49
+    .word 0x46 # 2
+    .word 0x21
+    .word 0x41
+    .word 0x45
+    .word 0x4B
+    .word 0x31 # 3
+    .word 0x18
+    .word 0x14
+    .word 0x12
+    .word 0x7F
+    .word 0x10 # 4
+    .word 0x27
+    .word 0x45
+    .word 0x45
+    .word 0x45
+    .word 0x39 # 5
+    .word 0x3C
+    .word 0x4A
+    .word 0x49
+    .word 0x49
+    .word 0x30 # 6
+    .word 0x01
+    .word 0x71
+    .word 0x09
+    .word 0x05
+    .word 0x03 # 7
+    .word 0x36
+    .word 0x49
+    .word 0x49
+    .word 0x49
+    .word 0x36 # 8
+    .word 0x06
+    .word 0x49
+    .word 0x49
+    .word 0x29
+    .word 0x1E # 9
+    .word 0x00
+    .word 0x36
+    .word 0x36
+    .word 0x00
+    .word 0x00 # :
+    .word 0x00
+    .word 0x56
+    .word 0x36
+    .word 0x00
+    .word 0x00 # ;
+    .word 0x00
+    .word 0x08
+    .word 0x14
+    .word 0x22
+    .word 0x41 # <
+    .word 0x14
+    .word 0x14
+    .word 0x14
+    .word 0x14
+    .word 0x14 # =
+    .word 0x41
+    .word 0x22
+    .word 0x14
+    .word 0x08
+    .word 0x00 # >
+    .word 0x02
+    .word 0x01
+    .word 0x51
+    .word 0x09
+    .word 0x06 # ?
+    .word 0x32
+    .word 0x49
+    .word 0x79
+    .word 0x41
+    .word 0x3E # @
+    .word 0x7E
+    .word 0x11
+    .word 0x11
+    .word 0x11
+    .word 0x7E # A
+    .word 0x7F
+    .word 0x49
+    .word 0x49
+    .word 0x49
+    .word 0x36 # B
+    .word 0x3E
+    .word 0x41
+    .word 0x41
+    .word 0x41
+    .word 0x22 # C
+    .word 0x7F
+    .word 0x41
+    .word 0x41
+    .word 0x22
+    .word 0x1C # D
+    .word 0x7F
+    .word 0x49
+    .word 0x49
+    .word 0x49
+    .word 0x41 # E
+    .word 0x7F
+    .word 0x09
+    .word 0x09
+    .word 0x01
+    .word 0x01 # F
+    .word 0x3E
+    .word 0x41
+    .word 0x41
+    .word 0x51
+    .word 0x32 # G
+    .word 0x7F
+    .word 0x08
+    .word 0x08
+    .word 0x08
+    .word 0x7F # H
+    .word 0x00
+    .word 0x41
+    .word 0x7F
+    .word 0x41
+    .word 0x00 # I
+    .word 0x20
+    .word 0x40
+    .word 0x41
+    .word 0x3F
+    .word 0x01 # J
+    .word 0x7F
+    .word 0x08
+    .word 0x14
+    .word 0x22
+    .word 0x41 # K
+    .word 0x7F
+    .word 0x40
+    .word 0x40
+    .word 0x40
+    .word 0x40 # L
+    .word 0x7F
+    .word 0x02
+    .word 0x04
+    .word 0x02
+    .word 0x7F # M
+    .word 0x7F
+    .word 0x04
+    .word 0x08
+    .word 0x10
+    .word 0x7F # N
+    .word 0x3E
+    .word 0x41
+    .word 0x41
+    .word 0x41
+    .word 0x3E # O
+    .word 0x7F
+    .word 0x09
+    .word 0x09
+    .word 0x09
+    .word 0x06 # P
+    .word 0x3E
+    .word 0x41
+    .word 0x51
+    .word 0x21
+    .word 0x5E # Q
+    .word 0x7F
+    .word 0x09
+    .word 0x19
+    .word 0x29
+    .word 0x46 # R
+    .word 0x46
+    .word 0x49
+    .word 0x49
+    .word 0x49
+    .word 0x31 # S
+    .word 0x01
+    .word 0x01
+    .word 0x7F
+    .word 0x01
+    .word 0x01 # T
+    .word 0x3F
+    .word 0x40
+    .word 0x40
+    .word 0x40
+    .word 0x3F # U
+    .word 0x1F
+    .word 0x20
+    .word 0x40
+    .word 0x20
+    .word 0x1F # V
+    .word 0x7F
+    .word 0x20
+    .word 0x18
+    .word 0x20
+    .word 0x7F # W
+    .word 0x63
+    .word 0x14
+    .word 0x08
+    .word 0x14
+    .word 0x63 # X
+    .word 0x03
+    .word 0x04
+    .word 0x78
+    .word 0x04
+    .word 0x03 # Y
+    .word 0x61
+    .word 0x51
+    .word 0x49
+    .word 0x45
+    .word 0x43 # Z
+    .word 0x00
+    .word 0x00
+    .word 0x7F
+    .word 0x41
+    .word 0x41 # [
+    .word 0x02
+    .word 0x04
+    .word 0x08
+    .word 0x10
+    .word 0x20 # "\"
+    .word 0x41
+    .word 0x41
+    .word 0x7F
+    .word 0x00
+    .word 0x00 # ]
+    .word 0x04
+    .word 0x02
+    .word 0x01
+    .word 0x02
+    .word 0x04 # ^
+    .word 0x40
+    .word 0x40
+    .word 0x40
+    .word 0x40
+    .word 0x40 # _
+    .word 0x00
+    .word 0x01
+    .word 0x02
+    .word 0x04
+    .word 0x00 # `
+    .word 0x20
+    .word 0x54
+    .word 0x54
+    .word 0x54
+    .word 0x78 # a
+    .word 0x7F
+    .word 0x48
+    .word 0x44
+    .word 0x44
+    .word 0x38 # b
+    .word 0x38
+    .word 0x44
+    .word 0x44
+    .word 0x44
+    .word 0x20 # c
+    .word 0x38
+    .word 0x44
+    .word 0x44
+    .word 0x48
+    .word 0x7F # d
+    .word 0x38
+    .word 0x54
+    .word 0x54
+    .word 0x54
+    .word 0x18 # e
+    .word 0x08
+    .word 0x7E
+    .word 0x09
+    .word 0x01
+    .word 0x02 # f
+    .word 0x08
+    .word 0x14
+    .word 0x54
+    .word 0x54
+    .word 0x3C # g
+    .word 0x7F
+    .word 0x08
+    .word 0x04
+    .word 0x04
+    .word 0x78 # h
+    .word 0x00
+    .word 0x44
+    .word 0x7D
+    .word 0x40
+    .word 0x00 # i
+    .word 0x20
+    .word 0x40
+    .word 0x44
+    .word 0x3D
+    .word 0x00 # j
+    .word 0x00
+    .word 0x7F
+    .word 0x10
+    .word 0x28
+    .word 0x44 # k
+    .word 0x00
+    .word 0x41
+    .word 0x7F
+    .word 0x40
+    .word 0x00 # l
+    .word 0x7C
+    .word 0x04
+    .word 0x18
+    .word 0x04
+    .word 0x78 # m
+    .word 0x7C
+    .word 0x08
+    .word 0x04
+    .word 0x04
+    .word 0x78 # n
+    .word 0x38
+    .word 0x44
+    .word 0x44
+    .word 0x44
+    .word 0x38 # o
+    .word 0x7C
+    .word 0x14
+    .word 0x14
+    .word 0x14
+    .word 0x08 # p
+    .word 0x08
+    .word 0x14
+    .word 0x14
+    .word 0x18
+    .word 0x7C # q
+    .word 0x7C
+    .word 0x08
+    .word 0x04
+    .word 0x04
+    .word 0x08 # r
+    .word 0x48
+    .word 0x54
+    .word 0x54
+    .word 0x54
+    .word 0x20 # s
+    .word 0x04
+    .word 0x3F
+    .word 0x44
+    .word 0x40
+    .word 0x20 # t
+    .word 0x3C
+    .word 0x40
+    .word 0x40
+    .word 0x20
+    .word 0x7C # u
+    .word 0x1C
+    .word 0x20
+    .word 0x40
+    .word 0x20
+    .word 0x1C # v
+    .word 0x3C
+    .word 0x40
+    .word 0x30
+    .word 0x40
+    .word 0x3C # w
+    .word 0x44
+    .word 0x28
+    .word 0x10
+    .word 0x28
+    .word 0x44 # x
+    .word 0x0C
+    .word 0x50
+    .word 0x50
+    .word 0x50
+    .word 0x3C # y
+    .word 0x44
+    .word 0x64
+    .word 0x54
+    .word 0x4C
+    .word 0x44 # z
+    .word 0x00
+    .word 0x08
+    .word 0x36
+    .word 0x41
+    .word 0x00 # {
+    .word 0x00
+    .word 0x00
+    .word 0x7F
+    .word 0x00
+    .word 0x00 # |
+    .word 0x00
+    .word 0x41
+    .word 0x36
+    .word 0x08
+    .word 0x00 # }
+    .word 0x02
+    .word 0x01
+    .word 0x02
+    .word 0x04
+    .word 0x02 # ~
+    .word 0xff
+    .word 0xff
+    .word 0xff
+    .word 0xff
+    .word 0xff # blackblock
