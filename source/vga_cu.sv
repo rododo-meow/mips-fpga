@@ -30,19 +30,19 @@ reg [9:0] _x, _y;
 assign x = _x;
 assign y = _y;
 
-always @(negedge vga_clk, negedge resetn) begin
+always @(posedge vga_clk, negedge resetn) begin
 	if (!resetn) begin
 		hcnt <= 0;
 		vcnt <= 0;
 		_x <= 0;
 		_y <= 0;
 	end else begin
-		if (hcnt <= (H_A + H_B + H_C + H_D)) begin
+		if (hcnt < (H_A + H_B + H_C + H_D - 1)) begin
 			hcnt <= hcnt + 11'd1;
-			_x <= hcnt - (H_A + H_B - 10'd1);
+			_x <= hcnt - (H_A + H_B - 11'd2);
 		end else begin
 			hcnt <= 0;
-			if (vcnt <= (V_A + V_B + V_C + V_D)) begin
+			if (vcnt < (V_A + V_B + V_C + V_D - 1)) begin
 				vcnt <= vcnt + 10'd1;
 				_y <= vcnt - (V_A + V_B - 10'd1);
 			end else begin
@@ -52,7 +52,7 @@ always @(negedge vga_clk, negedge resetn) begin
 	end
 end
 
-always @(posedge vga_clk) begin
+always @(negedge vga_clk) begin
 	_vga_hs <= ~(hcnt < V_A);
 	_vga_vs <= ~(vcnt < V_B);
 end

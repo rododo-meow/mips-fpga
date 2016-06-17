@@ -104,10 +104,20 @@ always @(SEG0, SEG1, SEG2, SEG3, SEG4, SEG5)
 always @(LED)
 	$display("LED: %010b", LED);
 
+always @(negedge clock)
+	if (computer.aluout[31:24] == 8'hf4 && computer.cpu_wmem) begin
+		if (computer.aluout[23:0] == 24'hfffffc)
+			$display("VGA switch buf");
+		else if (computer.data)
+			$display("VGA write: set (%d,%d)", computer.aluout[9:0], computer.aluout[19:10]);
+		else
+			$display("VGA write: clear (%d,%d)", computer.aluout[9:0], computer.aluout[19:10]);
+	end
+		
 // Stop condition
 
 always @(posedge clock)
-	if (cycle == 800)
+	if (cycle == 8000)
 		$stop;
 	
 // IO emulation

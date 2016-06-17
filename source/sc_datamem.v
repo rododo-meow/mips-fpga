@@ -6,6 +6,6 @@ module sc_datamem (addr,datain,dataout,we,mem_clk);
    input          we,mem_clk;
    output [31:0]  dataout;
    
-   lpm_ram_dq_dram  dram(addr[7:2],mem_clk,datain,we,dataout );
+   lpm_ram_dq_dram  dram(addr[11:2],mem_clk,datain,we,dataout );
 
 endmodule 

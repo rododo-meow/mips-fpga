@@ -1,10 +1,10 @@
-DEPTH = 1024;
+DEPTH = 2048;
 WIDTH = 8;
 ADDRESS_RADIX = HEX;
 DATA_RADIX = HEX;
 CONTENT
 BEGIN
-   0 : 08; -- main:  jy86 y86entry
+   0 : 08; -- main: jy86 y86entry
    1 : 00;
    2 : 00;
    3 : e8;
@@ -12,1020 +12,2044 @@ BEGIN
    5 : 00;
    6 : 00;
    7 : 00;
-   8 : 30; -- y86entry: irmovl Stack, %esp
+   8 : 30; --     irmovl Stack, %esp
    9 : f4;
-   A : c8;
-   B : 00;
+   A : 20;
+   B : 02;
    C : 00;
    D : 00;
-   E : 20; --           rrmovl %esp, %ebp
-   F : 45;
-  10 : 80; --           call y86main
-  11 : 1a;
+   E : 80; --     call y86main
+   F : 18;
+  10 : 00;
+  11 : 00;
   12 : 00;
-  13 : 00;
-  14 : 00;
-  15 : 70; -- dead:     jmp dead
-  16 : 15;
+  13 : 70; -- dead: jmp dead
+  14 : 13;
+  15 : 00;
+  16 : 00;
   17 : 00;
-  18 : 00;
-  19 : 00;
-  1A : 30; -- y86main: irmovl SCREEN_X / 2, %eax
-  1B : f0;
-  1C : 90;
-  1D : 01;
-  1E : 00;
-  1F : 00;
-  20 : 30; --          irmovl SCREEN_Y / 2, %ebx
-  21 : f3;
-  22 : 2c;
-  23 : 01;
-  24 : 00;
+  18 : 80; --     call switch_buf
+  19 : 96;
+  1A : 02;
+  1B : 00;
+  1C : 00;
+  1D : 80; --     call switch_buf
+  1E : 96;
+  1F : 02;
+  20 : 00;
+  21 : 00;
+  22 : 80; --     call switch_buf
+  23 : 96;
+  24 : 02;
   25 : 00;
-  26 : 30; --          irmovl $-1, %ecx
-  27 : f1;
-  28 : ff;
-  29 : ff;
-  2A : ff;
-  2B : ff;
-  2C : 30; --          irmovl $-1, %edx
-  2D : f2;
-  2E : ff;
-  2F : ff;
-  30 : ff;
-  31 : ff;
-  32 : 80; --          call clean_screen
-  33 : a4;
-  34 : 02;
-  35 : 00;
+  26 : 00;
+  27 : 80; --     call read_key
+  28 : d4;
+  29 : 02;
+  2A : 00;
+  2B : 00;
+  2C : 64; --     orl %eax, %eax
+  2D : 00;
+  2E : 74; --     jne menu_loop
+  2F : 27;
+  30 : 00;
+  31 : 00;
+  32 : 00;
+  33 : 30; --     irmovl cur, %eax
+  34 : f0;
+  35 : 20;
   36 : 00;
-  37 : 80; --          call swap_buf
-  38 : b9;
-  39 : 01;
+  37 : 00;
+  38 : 00;
+  39 : 50; --     mrmovl (%eax), %eax
   3A : 00;
   3B : 00;
-  3C : 80; --          call clean_screen
-  3D : a4;
-  3E : 02;
-  3F : 00;
-  40 : 00;
-  41 : 80; -- loop:    call clean_ball
-  42 : 4d;
-  43 : 01;
-  44 : 00;
-  45 : 00;
-  46 : a0; --          pushl %eax
-  47 : 0f;
-  48 : 20; --          rrmovl %esi, %eax
-  49 : 60;
-  4A : 80; --          call clean_pad
-  4B : 1e;
-  4C : 02;
+  3C : 00;
+  3D : 00;
+  3E : 00;
+  3F : 80; --     call print_cube
+  40 : 46;
+  41 : 01;
+  42 : 00;
+  43 : 00;
+  44 : 30; --     irmovl menu, %eax
+  45 : f0;
+  46 : 00;
+  47 : 00;
+  48 : 00;
+  49 : 00;
+  4A : 30; --     irmovl 10, %ebx
+  4B : f3;
+  4C : 0a;
   4D : 00;
   4E : 00;
-  4F : b0; --          popl %eax
-  50 : 0f;
-  51 : e6; --          cmpi %eax, $0
-  52 : 0f;
+  4F : 00;
+  50 : 30; --     irmovl 1, %ecx
+  51 : f1;
+  52 : 01;
   53 : 00;
   54 : 00;
   55 : 00;
-  56 : 00;
-  57 : 73; --          je flip_dx
-  58 : 6c;
+  56 : 50; --     mrmovl (%eax), %edx
+  57 : 20;
+  58 : 00;
   59 : 00;
   5A : 00;
   5B : 00;
-  5C : e6; --          cmpi %eax, SCREEN_X
-  5D : 0f;
-  5E : 20;
-  5F : 03;
+  5C : e6; --     cmpi %edx, $0
+  5D : 2f;
+  5E : 00;
+  5F : 00;
   60 : 00;
   61 : 00;
-  62 : 73; --          je flip_dx
-  63 : 6c;
+  62 : 73; --     je menu_print_done
+  63 : 8b;
   64 : 00;
   65 : 00;
   66 : 00;
-  67 : 70; --          jmp skip_dx
-  68 : 72;
-  69 : 00;
-  6A : 00;
-  6B : 00;
-  6C : d1; -- flip_dx: isubl $0, %ecx
-  6D : f1;
-  6E : 00;
-  6F : 00;
-  70 : 00;
-  71 : 00;
-  72 : e6; --          cmpi %ebx, $0
-  73 : 3f;
-  74 : 00;
-  75 : 00;
-  76 : 00;
-  77 : 00;
-  78 : 73; --          je flip_dy
-  79 : 82;
-  7A : 00;
+  67 : a0; --     pushl %eax
+  68 : 0f;
+  69 : 20; --     rrmovl %edx, %eax
+  6A : 20;
+  6B : a0; --     pushl %ebx
+  6C : 3f;
+  6D : a0; --     pushl %ecx
+  6E : 1f;
+  6F : 80; --     call print_string
+  70 : a3;
+  71 : 01;
+  72 : 00;
+  73 : 00;
+  74 : b0; --     popl %ecx
+  75 : 1f;
+  76 : b0; --     popl %ebx
+  77 : 3f;
+  78 : d0; --     iaddl 9, %ecx
+  79 : f1;
+  7A : 09;
   7B : 00;
   7C : 00;
-  7D : 70; --          jmp skip_dy
-  7E : 88;
-  7F : 00;
-  80 : 00;
-  81 : 00;
-  82 : d1; -- flip_dy: isubl $0, %edx
-  83 : f2;
+  7D : 00;
+  7E : b0; --     popl %eax
+  7F : 0f;
+  80 : d0; --     iaddl $8, %eax
+  81 : f0;
+  82 : 08;
+  83 : 00;
   84 : 00;
   85 : 00;
-  86 : 00;
-  87 : 00;
-  88 : e6; --          cmpi %ebx, PAD_Y - BALL_RADIUS
-  89 : 3f;
-  8A : 37;
-  8B : 02;
-  8C : 00;
-  8D : 00;
-  8E : 74; --          jne skip_check_pad
-  8F : af;
-  90 : 00;
-  91 : 00;
-  92 : 00;
-  93 : 66; --          cmpl %eax, %esi
-  94 : 06;
-  95 : 72; --          jl skip_check_pad
-  96 : af;
-  97 : 00;
+  86 : 70; --     jmp menu_print_loop
+  87 : 56;
+  88 : 00;
+  89 : 00;
+  8A : 00;
+  8B : 80; --     call switch_buf
+  8C : 96;
+  8D : 02;
+  8E : 00;
+  8F : 00;
+  90 : 80; --     call read_key
+  91 : d4;
+  92 : 02;
+  93 : 00;
+  94 : 00;
+  95 : d2; --     iandl $2, %eax
+  96 : f0;
+  97 : 02;
   98 : 00;
   99 : 00;
-  9A : 20; --          rrmovl %esi, %edi
-  9B : 67;
-  9C : d0; --          iaddl PAD_LENGTH, %edi
-  9D : f7;
-  9E : 3c;
+  9A : 00;
+  9B : 73; --     je skip_move_down
+  9C : ce;
+  9D : 00;
+  9E : 00;
   9F : 00;
-  A0 : 00;
-  A1 : 00;
-  A2 : 66; --          cmpl %eax, %edi
-  A3 : 07;
-  A4 : 76; --          jg skip_check_pad
-  A5 : af;
-  A6 : 00;
+  A0 : 30; --     irmovl cur, %eax
+  A1 : f0;
+  A2 : 20;
+  A3 : 00;
+  A4 : 00;
+  A5 : 00;
+  A6 : 50; --     mrmovl (%eax), %eax
   A7 : 00;
   A8 : 00;
-  A9 : d1; --          isubl $0, %edx
-  AA : f2;
+  A9 : 00;
+  AA : 00;
   AB : 00;
-  AC : 00;
-  AD : 00;
-  AE : 00;
-  AF : e6; --          cmpi %ebx, SCREEN_Y - BALL_RADIUS
-  B0 : 3f;
-  B1 : 55;
-  B2 : 02;
-  B3 : 00;
+  AC : e6; --     cmpi %eax, (menu_end-menu)/8-2
+  AD : 0f;
+  AE : 02;
+  AF : 00;
+  B0 : 00;
+  B1 : 00;
+  B2 : 75; --     jge skip_move_down
+  B3 : ce;
   B4 : 00;
-  B5 : 74; --          jne skip_dead
-  B6 : bf;
-  B7 : 00;
-  B8 : 00;
-  B9 : 00;
-  BA : 80; --          call gameover
-  BB : 32;
-  BC : 01;
-  BD : 00;
-  BE : 00;
-  BF : 60; --          addl %ecx, %eax
-  C0 : 10;
-  C1 : 60; --          addl %edx, %ebx
-  C2 : 23;
-  C3 : 80; --          call draw_ball
-  C4 : ca;
-  C5 : 01;
+  B5 : 00;
+  B6 : 00;
+  B7 : d0; --     iaddl $1, %eax
+  B8 : f0;
+  B9 : 01;
+  BA : 00;
+  BB : 00;
+  BC : 00;
+  BD : 30; --     irmovl cur, %ebx
+  BE : f3;
+  BF : 20;
+  C0 : 00;
+  C1 : 00;
+  C2 : 00;
+  C3 : 40; --     rmmovl %eax, (%ebx)
+  C4 : 03;
+  C5 : 00;
   C6 : 00;
   C7 : 00;
-  C8 : a0; --          pushl %eax
-  C9 : 0f;
-  CA : e6; --          cmpi %esi, SCREEN_X - PAD_LENGTH
-  CB : 6f;
-  CC : e4;
-  CD : 02;
-  CE : 00;
-  CF : 00;
-  D0 : 76; --          jg skip_move_pad_right
-  D1 : f2;
+  C8 : 00;
+  C9 : 70; --     jmp menu_loop
+  CA : 27;
+  CB : 00;
+  CC : 00;
+  CD : 00;
+  CE : 80; --     call read_key
+  CF : d4;
+  D0 : 02;
+  D1 : 00;
   D2 : 00;
-  D3 : 00;
-  D4 : 00;
-  D5 : 30; --          irmovl $0xf3000004, %edi
-  D6 : f7;
-  D7 : 04;
+  D3 : d2; --     iandl $4, %eax
+  D4 : f0;
+  D5 : 04;
+  D6 : 00;
+  D7 : 00;
   D8 : 00;
-  D9 : 00;
-  DA : f3;
-  DB : 50; --          mrmovl 0(%edi), %edi
-  DC : 77;
+  D9 : 73; --     je skip_move_up
+  DA : 0c;
+  DB : 01;
+  DC : 00;
   DD : 00;
-  DE : 00;
-  DF : 00;
-  E0 : 00;
-  E1 : e6; --          cmpi %edi, $1
-  E2 : 7f;
-  E3 : 01;
-  E4 : 00;
+  DE : 30; --     irmovl cur, %eax
+  DF : f0;
+  E0 : 20;
+  E1 : 00;
+  E2 : 00;
+  E3 : 00;
+  E4 : 50; --     mrmovl (%eax), %eax
   E5 : 00;
   E6 : 00;
-  E7 : 73; --          je skip_move_pad_right
-  E8 : f2;
+  E7 : 00;
+  E8 : 00;
   E9 : 00;
-  EA : 00;
-  EB : 00;
-  EC : d0; --          iaddl PAD_SPEED, %esi
-  ED : f6;
-  EE : 02;
+  EA : e6; --     cmpi %eax, $0
+  EB : 0f;
+  EC : 00;
+  ED : 00;
+  EE : 00;
   EF : 00;
-  F0 : 00;
-  F1 : 00;
-  F2 : e6; --          cmpi %esi, 0
-  F3 : 6f;
+  F0 : 71; --     jle skip_move_down
+  F1 : ce;
+  F2 : 00;
+  F3 : 00;
   F4 : 00;
-  F5 : 00;
-  F6 : 00;
-  F7 : 00;
-  F8 : 71; --          jle skip_move_pad_left
-  F9 : 1a;
-  FA : 01;
-  FB : 00;
-  FC : 00;
-  FD : 30; --          irmovl $0xf3000008, %edi
-  FE : f7;
-  FF : 08;
+  F5 : d0; --     iaddl $-1, %eax
+  F6 : f0;
+  F7 : ff;
+  F8 : ff;
+  F9 : ff;
+  FA : ff;
+  FB : 30; --     irmovl cur, %ebx
+  FC : f3;
+  FD : 20;
+  FE : 00;
+  FF : 00;
  100 : 00;
- 101 : 00;
- 102 : f3;
- 103 : 50; --          mrmovl 0(%edi), %edi
- 104 : 77;
+ 101 : 40; --     rmmovl %eax, (%ebx)
+ 102 : 03;
+ 103 : 00;
+ 104 : 00;
  105 : 00;
  106 : 00;
- 107 : 00;
- 108 : 00;
- 109 : e6; --          cmpi %edi, $1
- 10A : 7f;
- 10B : 01;
- 10C : 00;
- 10D : 00;
- 10E : 00;
- 10F : 73; --          je skip_move_pad_left
- 110 : 1a;
- 111 : 01;
- 112 : 00;
- 113 : 00;
- 114 : d0; --          iaddl -PAD_SPEED, %esi
- 115 : f6;
- 116 : fe;
- 117 : ff;
- 118 : ff;
- 119 : ff;
- 11A : 20; --          rrmovl %esi, %eax
- 11B : 60;
- 11C : 80; --          call draw_pad
- 11D : 64;
- 11E : 02;
+ 107 : 70; --     jmp menu_loop
+ 108 : 27;
+ 109 : 00;
+ 10A : 00;
+ 10B : 00;
+ 10C : 80; --     call read_key
+ 10D : d4;
+ 10E : 02;
+ 10F : 00;
+ 110 : 00;
+ 111 : d2; --     iandl $8, %eax
+ 112 : f0;
+ 113 : 08;
+ 114 : 00;
+ 115 : 00;
+ 116 : 00;
+ 117 : 73; --     je skip_enter
+ 118 : 3e;
+ 119 : 01;
+ 11A : 00;
+ 11B : 00;
+ 11C : 30; --     irmovl cur, %eax
+ 11D : f0;
+ 11E : 20;
  11F : 00;
  120 : 00;
- 121 : b0; --          popl %eax
- 122 : 0f;
- 123 : 80; --          call swap_buf
- 124 : b9;
- 125 : 01;
+ 121 : 00;
+ 122 : 50; --     mrmovl (%eax), %eax
+ 123 : 00;
+ 124 : 00;
+ 125 : 00;
  126 : 00;
  127 : 00;
- 128 : 80; --          call delay
- 129 : 37;
- 12A : 01;
+ 128 : e5; --     slli %eax, $3
+ 129 : 0f;
+ 12A : 03;
  12B : 00;
  12C : 00;
- 12D : 70; --          jmp loop
- 12E : 41;
+ 12D : 00;
+ 12E : 50; --     mrmovl 4(%eax), %eax
  12F : 00;
- 130 : 00;
+ 130 : 04;
  131 : 00;
- 132 : 70; -- gameover: jmp gameover
- 133 : 32;
- 134 : 01;
- 135 : 00;
- 136 : 00;
- 137 : a0; -- delay:   pushl %eax
- 138 : 0f;
- 139 : 30; --          irmovl int(20000000/12*(1.0/SPEED)), %eax
- 13A : f0;
- 13B : 8d;
- 13C : 20;
+ 132 : 00;
+ 133 : 00;
+ 134 : 80; --     call rcall
+ 135 : 43;
+ 136 : 01;
+ 137 : 00;
+ 138 : 00;
+ 139 : 70; --     jmp menu_loop
+ 13A : 27;
+ 13B : 00;
+ 13C : 00;
  13D : 00;
- 13E : 00;
- 13F : d0; -- delay_l: iaddl $-1, %eax
- 140 : f0;
- 141 : ff;
- 142 : ff;
- 143 : ff;
- 144 : ff;
- 145 : 74; --          jne delay_l
- 146 : 3f;
- 147 : 01;
- 148 : 00;
- 149 : 00;
- 14A : b0; --          popl %eax
- 14B : 0f;
- 14C : 90; --          ret
- 14D : a0; -- clean_ball: pushl %ecx
- 14E : 1f;
- 14F : a0; --             pushl %eax
- 150 : 0f;
- 151 : a0; --             pushl %ebx
- 152 : 3f;
- 153 : 30; --             irmovl $0, %ecx # get 0
- 154 : f1;
+ 13E : 70; --     jmp menu_wait_key
+ 13F : 90;
+ 140 : 00;
+ 141 : 00;
+ 142 : 00;
+ 143 : a0; --     pushl %eax
+ 144 : 0f;
+ 145 : 90; --     ret
+ 146 : a0; --     pushl %ebx
+ 147 : 3f;
+ 148 : a0; --     pushl %ecx
+ 149 : 1f;
+ 14A : 30; --     irmovl $3, %ebx
+ 14B : f3;
+ 14C : 03;
+ 14D : 00;
+ 14E : 00;
+ 14F : 00;
+ 150 : 20; --     rrmovl %eax, %ecx
+ 151 : 01;
+ 152 : e5; --     slli %eax, $3
+ 153 : 0f;
+ 154 : 03;
  155 : 00;
  156 : 00;
  157 : 00;
- 158 : 00;
- 159 : e5; --             slli %ebx, $10
- 15A : 3f;
- 15B : 0a;
- 15C : 00;
+ 158 : 60; --     addl %ecx, %eax
+ 159 : 10;
+ 15A : d0; --     iaddl $4, %eax
+ 15B : f0;
+ 15C : 04;
  15D : 00;
  15E : 00;
- 15F : 64; --             orl %ebx, %eax # get base
- 160 : 30;
- 161 : d0; --             iaddl 1024*4, %eax # get end variable
- 162 : f0;
+ 15F : 00;
+ 160 : e5; --     slli %eax, $10
+ 161 : 0f;
+ 162 : 0a;
  163 : 00;
- 164 : 10;
+ 164 : 00;
  165 : 00;
- 166 : 00;
- 167 : 20; --             rrmovl %eax, %ebx
- 168 : 03;
- 169 : d0; --             iaddl -1024*9, %eax # set start variable
- 16A : f0;
- 16B : 00;
- 16C : dc;
- 16D : ff;
- 16E : ff;
- 16F : 40; -- clean_loop: rmmovl %ecx, (0xf4000000-4)(%eax)
- 170 : 10;
+ 166 : 64; --     orl %ebx, %eax
+ 167 : 30;
+ 168 : 40; --     rmmovl %eax, 0xf4000000-1024*1-1(%eax)
+ 169 : 00;
+ 16A : ff;
+ 16B : fb;
+ 16C : ff;
+ 16D : f3;
+ 16E : 40; --     rmmovl %eax, 0xf4000000-1024*1-0(%eax)
+ 16F : 00;
+ 170 : 00;
  171 : fc;
  172 : ff;
- 173 : ff;
- 174 : f3;
- 175 : 40; --             rmmovl %ecx, (0xf4000000-3)(%eax)
- 176 : 10;
- 177 : fd;
+ 173 : f3;
+ 174 : 40; --     rmmovl %eax, 0xf4000000-1024*1+1(%eax)
+ 175 : 00;
+ 176 : 01;
+ 177 : fc;
  178 : ff;
- 179 : ff;
- 17A : f3;
- 17B : 40; --             rmmovl %ecx, (0xf4000000-2)(%eax)
- 17C : 10;
- 17D : fe;
+ 179 : f3;
+ 17A : 40; --     rmmovl %eax, 0xf4000000-1024*0-1(%eax)
+ 17B : 00;
+ 17C : ff;
+ 17D : ff;
  17E : ff;
- 17F : ff;
- 180 : f3;
- 181 : 40; --             rmmovl %ecx, (0xf4000000-1)(%eax)
- 182 : 10;
- 183 : ff;
- 184 : ff;
- 185 : ff;
- 186 : f3;
- 187 : 40; --             rmmovl %ecx, (0xf4000000-0)(%eax)
- 188 : 10;
+ 17F : f3;
+ 180 : 40; --     rmmovl %eax, 0xf4000000-1024*0-0(%eax)
+ 181 : 00;
+ 182 : 00;
+ 183 : 00;
+ 184 : 00;
+ 185 : f4;
+ 186 : 40; --     rmmovl %eax, 0xf4000000-1024*0+1(%eax)
+ 187 : 00;
+ 188 : 01;
  189 : 00;
  18A : 00;
- 18B : 00;
- 18C : f4;
- 18D : 40; --             rmmovl %ecx, (0xf4000000+1)(%eax)
- 18E : 10;
- 18F : 01;
+ 18B : f4;
+ 18C : 40; --     rmmovl %eax, 0xf4000000+1024*1-1(%eax)
+ 18D : 00;
+ 18E : ff;
+ 18F : 03;
  190 : 00;
- 191 : 00;
- 192 : f4;
- 193 : 40; --             rmmovl %ecx, (0xf4000000+2)(%eax)
- 194 : 10;
- 195 : 02;
+ 191 : f4;
+ 192 : 40; --     rmmovl %eax, 0xf4000000+1024*1-0(%eax)
+ 193 : 00;
+ 194 : 00;
+ 195 : 04;
  196 : 00;
- 197 : 00;
- 198 : f4;
- 199 : 40; --             rmmovl %ecx, (0xf4000000+3)(%eax)
- 19A : 10;
- 19B : 03;
+ 197 : f4;
+ 198 : 40; --     rmmovl %eax, 0xf4000000+1024*1+1(%eax)
+ 199 : 00;
+ 19A : 01;
+ 19B : 04;
  19C : 00;
- 19D : 00;
- 19E : f4;
- 19F : 40; --             rmmovl %ecx, (0xf4000000+4)(%eax) # clean a row
- 1A0 : 10;
- 1A1 : 04;
- 1A2 : 00;
- 1A3 : 00;
- 1A4 : f4;
- 1A5 : d0; --             iaddl $1024, %eax # move to next row
- 1A6 : f0;
- 1A7 : 00;
- 1A8 : 04;
+ 19D : f4;
+ 19E : b0; --     popl %ecx
+ 19F : 1f;
+ 1A0 : b0; --     popl %ebx
+ 1A1 : 3f;
+ 1A2 : 90; --     ret
+ 1A3 : a0; --     pushl %edx
+ 1A4 : 2f;
+ 1A5 : 20; --     rrmovl %eax, %edx
+ 1A6 : 02;
+ 1A7 : 50; --     mrmovl (%edx), %eax
+ 1A8 : 02;
  1A9 : 00;
  1AA : 00;
- 1AB : 66; --             cmpl %eax, %ebx # got end?
- 1AC : 03;
- 1AD : 74; --             jne clean_loop
- 1AE : 6f;
- 1AF : 01;
+ 1AB : 00;
+ 1AC : 00;
+ 1AD : e6; --     cmpi %eax, $0
+ 1AE : 0f;
+ 1AF : 00;
  1B0 : 00;
  1B1 : 00;
- 1B2 : b0; --             popl %ebx
- 1B3 : 3f;
- 1B4 : b0; --             popl %eax
- 1B5 : 0f;
- 1B6 : b0; --             popl %ecx
- 1B7 : 1f;
- 1B8 : 90; --             ret
- 1B9 : a0; -- swap_buf: pushl %eax
- 1BA : 0f;
- 1BB : 30; --           irmovl $0, %eax
- 1BC : f0;
- 1BD : 00;
- 1BE : 00;
+ 1B2 : 00;
+ 1B3 : 73; --     je print_string_ret
+ 1B4 : d6;
+ 1B5 : 01;
+ 1B6 : 00;
+ 1B7 : 00;
+ 1B8 : a0; --     pushl %ebx
+ 1B9 : 3f;
+ 1BA : a0; --     pushl %ecx
+ 1BB : 1f;
+ 1BC : 80; --     call print_char
+ 1BD : d9;
+ 1BE : 01;
  1BF : 00;
  1C0 : 00;
- 1C1 : 40; --           rmmovl %eax, 0xf4fffffc(%eax)
- 1C2 : 00;
- 1C3 : fc;
- 1C4 : ff;
- 1C5 : ff;
- 1C6 : f4;
- 1C7 : b0; --           popl %eax
- 1C8 : 0f;
- 1C9 : 90; --           ret
- 1CA : a0; -- draw_ball: pushl %ecx
- 1CB : 1f;
- 1CC : a0; --            pushl %eax
- 1CD : 0f;
- 1CE : a0; --            pushl %ebx
- 1CF : 3f;
- 1D0 : 30; --            irmovl $1, %ecx # get 1
- 1D1 : f1;
- 1D2 : 01;
- 1D3 : 00;
+ 1C1 : b0; --     popl %ecx
+ 1C2 : 1f;
+ 1C3 : b0; --     popl %ebx
+ 1C4 : 3f;
+ 1C5 : d0; --     iaddl $7, %ebx
+ 1C6 : f3;
+ 1C7 : 07;
+ 1C8 : 00;
+ 1C9 : 00;
+ 1CA : 00;
+ 1CB : d0; --     iaddl $4, %edx
+ 1CC : f2;
+ 1CD : 04;
+ 1CE : 00;
+ 1CF : 00;
+ 1D0 : 00;
+ 1D1 : 70; --     jmp print_string_loop
+ 1D2 : a7;
+ 1D3 : 01;
  1D4 : 00;
  1D5 : 00;
- 1D6 : e5; --            slli %ebx, $10
- 1D7 : 3f;
- 1D8 : 0a;
- 1D9 : 00;
- 1DA : 00;
- 1DB : 00;
- 1DC : 64; --            orl %ebx, %eax # get base
- 1DD : 30;
- 1DE : d0; --            iaddl 1024*3, %eax # get end variable
- 1DF : f0;
- 1E0 : 00;
- 1E1 : 0c;
+ 1D6 : b0; --     popl %edx
+ 1D7 : 2f;
+ 1D8 : 90; --     ret
+ 1D9 : a0; --     pushl %esi
+ 1DA : 6f;
+ 1DB : a0; --     pushl %edx
+ 1DC : 2f;
+ 1DD : 20; --     rrmovl %ecx, %esi
+ 1DE : 16;
+ 1DF : e5; --     slli %esi, $10
+ 1E0 : 6f;
+ 1E1 : 0a;
  1E2 : 00;
  1E3 : 00;
- 1E4 : 20; --            rrmovl %eax, %ebx
- 1E5 : 03;
- 1E6 : d0; --            iaddl -1024*5, %eax # set start variable
- 1E7 : f0;
- 1E8 : 00;
- 1E9 : ec;
- 1EA : ff;
- 1EB : ff;
- 1EC : 40; -- draw_loop: rmmovl %ecx, (0xf4000000-2)(%eax)
- 1ED : 10;
- 1EE : fe;
- 1EF : ff;
- 1F0 : ff;
- 1F1 : f3;
- 1F2 : 40; --            rmmovl %ecx, (0xf4000000-1)(%eax)
- 1F3 : 10;
- 1F4 : ff;
- 1F5 : ff;
- 1F6 : ff;
- 1F7 : f3;
- 1F8 : 40; --            rmmovl %ecx, (0xf4000000-0)(%eax)
- 1F9 : 10;
- 1FA : 00;
- 1FB : 00;
- 1FC : 00;
- 1FD : f4;
- 1FE : 40; --            rmmovl %ecx, (0xf4000000+1)(%eax)
+ 1E4 : 00;
+ 1E5 : 60; --     addl %ebx, %esi
+ 1E6 : 36;
+ 1E7 : d0; --     iaddl $0xf4000000, %esi
+ 1E8 : f6;
+ 1E9 : 00;
+ 1EA : 00;
+ 1EB : 00;
+ 1EC : f4;
+ 1ED : e1; --     subi %eax, $32
+ 1EE : 0f;
+ 1EF : 20;
+ 1F0 : 00;
+ 1F1 : 00;
+ 1F2 : 00;
+ 1F3 : 72; --     jl print_ret
+ 1F4 : 91;
+ 1F5 : 02;
+ 1F6 : 00;
+ 1F7 : 00;
+ 1F8 : 20; --     rrmovl %eax, %ecx
+ 1F9 : 01;
+ 1FA : 60; --     addl %ecx, %ecx
+ 1FB : 11;
+ 1FC : 60; --     addl %ecx, %ecx
+ 1FD : 11;
+ 1FE : 60; --     addl %ecx, %eax
  1FF : 10;
- 200 : 01;
- 201 : 00;
- 202 : 00;
- 203 : f4;
- 204 : 40; --            rmmovl %ecx, (0xf4000000+2)(%eax) # draw a row
- 205 : 10;
- 206 : 02;
- 207 : 00;
- 208 : 00;
- 209 : f4;
- 20A : d0; --            iaddl $1024, %eax # move to next row
- 20B : f0;
- 20C : 00;
- 20D : 04;
- 20E : 00;
+ 200 : e5; --     slli %eax, 2
+ 201 : 0f;
+ 202 : 02;
+ 203 : 00;
+ 204 : 00;
+ 205 : 00;
+ 206 : d0; --     iaddl zk, %eax
+ 207 : f0;
+ 208 : 20;
+ 209 : 02;
+ 20A : 00;
+ 20B : 00;
+ 20C : 30; --     irmovl $5, %edx
+ 20D : f2;
+ 20E : 05;
  20F : 00;
- 210 : 66; --            cmpl %eax, %ebx # got end?
- 211 : 03;
- 212 : 74; --            jne draw_loop
- 213 : ec;
- 214 : 01;
+ 210 : 00;
+ 211 : 00;
+ 212 : 50; --     mrmovl (%eax), %ecx
+ 213 : 10;
+ 214 : 00;
  215 : 00;
  216 : 00;
- 217 : b0; --            popl %ebx
- 218 : 3f;
- 219 : b0; --            popl %eax
- 21A : 0f;
- 21B : b0; --            popl %ecx
- 21C : 1f;
- 21D : 90; --            ret
- 21E : a0; -- clean_pad:      pushl %ecx
- 21F : 1f;
- 220 : a0; --                 pushl %eax
- 221 : 0f;
- 222 : a0; --                 pushl %ebx
- 223 : 3f;
- 224 : 30; --                 irmovl $0, %ecx # get 0
- 225 : f1;
- 226 : 00;
- 227 : 00;
- 228 : 00;
- 229 : 00;
- 22A : d4; --                 iorl (PAD_Y << 10), %eax # get base
- 22B : f0;
+ 217 : 00;
+ 218 : 20; --     rrmovl %ecx, %ebx
+ 219 : 13;
+ 21A : d2; --     iandl $1, %ebx
+ 21B : f3;
+ 21C : 01;
+ 21D : 00;
+ 21E : 00;
+ 21F : 00;
+ 220 : 40; --     rmmovl %ebx, (%esi)
+ 221 : 36;
+ 222 : 00;
+ 223 : 00;
+ 224 : 00;
+ 225 : 00;
+ 226 : 20; --     rrmovl %ecx, %ebx
+ 227 : 13;
+ 228 : d2; --     iandl $2, %ebx
+ 229 : f3;
+ 22A : 02;
+ 22B : 00;
  22C : 00;
- 22D : e8;
- 22E : 08;
- 22F : 00;
- 230 : 20; --                 rrmovl %eax, %ebx
- 231 : 03;
- 232 : d0; --                 iaddl PAD_LENGTH+PAD_SPEED*2, %ebx # get end variable
- 233 : f3;
- 234 : 40;
- 235 : 00;
- 236 : 00;
- 237 : 00;
- 238 : d0; --                 iaddl -PAD_SPEED * 2, %eax
- 239 : f0;
- 23A : fc;
- 23B : ff;
- 23C : ff;
- 23D : ff;
- 23E : 40; -- clean_pad_loop: rmmovl %ecx, (0xf4000000+1024*0)(%eax)
- 23F : 10;
+ 22D : 00;
+ 22E : 40; --     rmmovl %ebx, 1024(%esi)
+ 22F : 36;
+ 230 : 00;
+ 231 : 04;
+ 232 : 00;
+ 233 : 00;
+ 234 : 20; --     rrmovl %ecx, %ebx
+ 235 : 13;
+ 236 : d2; --     iandl $4, %ebx
+ 237 : f3;
+ 238 : 04;
+ 239 : 00;
+ 23A : 00;
+ 23B : 00;
+ 23C : 40; --     rmmovl %ebx, 1024*2(%esi)
+ 23D : 36;
+ 23E : 00;
+ 23F : 08;
  240 : 00;
  241 : 00;
- 242 : 00;
- 243 : f4;
- 244 : 40; --                 rmmovl %ecx, (0xf4000000+1024*1)(%eax)
- 245 : 10;
- 246 : 00;
- 247 : 04;
+ 242 : 20; --     rrmovl %ecx, %ebx
+ 243 : 13;
+ 244 : d2; --     iandl $8, %ebx
+ 245 : f3;
+ 246 : 08;
+ 247 : 00;
  248 : 00;
- 249 : f4;
- 24A : 40; --                 rmmovl %ecx, (0xf4000000+1024*2)(%eax)
- 24B : 10;
+ 249 : 00;
+ 24A : 40; --     rmmovl %ebx, 1024*3(%esi)
+ 24B : 36;
  24C : 00;
- 24D : 08;
+ 24D : 0c;
  24E : 00;
- 24F : f4;
- 250 : d0; --                 iaddl $1, %eax
- 251 : f0;
- 252 : 01;
- 253 : 00;
- 254 : 00;
+ 24F : 00;
+ 250 : 20; --     rrmovl %ecx, %ebx
+ 251 : 13;
+ 252 : d2; --     iandl $16, %ebx
+ 253 : f3;
+ 254 : 10;
  255 : 00;
- 256 : 66; --                 cmpl %eax, %ebx
- 257 : 03;
- 258 : 74; --                 jne clean_pad_loop
- 259 : 3e;
- 25A : 02;
- 25B : 00;
+ 256 : 00;
+ 257 : 00;
+ 258 : 40; --     rmmovl %ebx, 1024*4(%esi)
+ 259 : 36;
+ 25A : 00;
+ 25B : 10;
  25C : 00;
- 25D : b0; --                 popl %ebx
- 25E : 3f;
- 25F : b0; --                 popl %eax
- 260 : 0f;
- 261 : b0; --                 popl %ecx
- 262 : 1f;
- 263 : 90; --                 ret
- 264 : a0; -- draw_pad:      pushl %ecx
- 265 : 1f;
- 266 : a0; --                pushl %eax
- 267 : 0f;
- 268 : a0; --                pushl %ebx
- 269 : 3f;
- 26A : 30; --                irmovl $1, %ecx # get 0
- 26B : f1;
- 26C : 01;
- 26D : 00;
- 26E : 00;
- 26F : 00;
- 270 : d4; --                iorl (PAD_Y << 10), %eax # get base
- 271 : f0;
+ 25D : 00;
+ 25E : 20; --     rrmovl %ecx, %ebx
+ 25F : 13;
+ 260 : d2; --     iandl $32, %ebx
+ 261 : f3;
+ 262 : 20;
+ 263 : 00;
+ 264 : 00;
+ 265 : 00;
+ 266 : 40; --     rmmovl %ebx, 1024*5(%esi)
+ 267 : 36;
+ 268 : 00;
+ 269 : 14;
+ 26A : 00;
+ 26B : 00;
+ 26C : 20; --     rrmovl %ecx, %ebx
+ 26D : 13;
+ 26E : d2; --     iandl $64, %ebx
+ 26F : f3;
+ 270 : 40;
+ 271 : 00;
  272 : 00;
- 273 : e8;
- 274 : 08;
- 275 : 00;
- 276 : 20; --                rrmovl %eax, %ebx
- 277 : 03;
- 278 : d0; --                iaddl PAD_LENGTH, %ebx # get end variable
- 279 : f3;
- 27A : 3c;
- 27B : 00;
- 27C : 00;
+ 273 : 00;
+ 274 : 40; --     rmmovl %ebx, 1024*6(%esi)
+ 275 : 36;
+ 276 : 00;
+ 277 : 18;
+ 278 : 00;
+ 279 : 00;
+ 27A : d0; --     iaddl $4, %eax
+ 27B : f0;
+ 27C : 04;
  27D : 00;
- 27E : 40; -- draw_pad_loop: rmmovl %ecx, (0xf4000000+1024*0)(%eax)
- 27F : 10;
- 280 : 00;
- 281 : 00;
- 282 : 00;
- 283 : f4;
- 284 : 40; --                rmmovl %ecx, (0xf4000000+1024*1)(%eax)
- 285 : 10;
- 286 : 00;
- 287 : 04;
- 288 : 00;
- 289 : f4;
- 28A : 40; --                rmmovl %ecx, (0xf4000000+1024*2)(%eax)
- 28B : 10;
- 28C : 00;
- 28D : 08;
- 28E : 00;
- 28F : f4;
- 290 : d0; --                iaddl $1, %eax
- 291 : f0;
- 292 : 01;
- 293 : 00;
- 294 : 00;
- 295 : 00;
- 296 : 66; --                cmpl %eax, %ebx
- 297 : 03;
- 298 : 74; --                jne draw_pad_loop
- 299 : 7e;
- 29A : 02;
+ 27E : 00;
+ 27F : 00;
+ 280 : d0; --     iaddl $1, %esi
+ 281 : f6;
+ 282 : 01;
+ 283 : 00;
+ 284 : 00;
+ 285 : 00;
+ 286 : e1; --     subi %edx, $1
+ 287 : 2f;
+ 288 : 01;
+ 289 : 00;
+ 28A : 00;
+ 28B : 00;
+ 28C : 74; --     jne print_loop
+ 28D : 12;
+ 28E : 02;
+ 28F : 00;
+ 290 : 00;
+ 291 : b0; --     popl %edx
+ 292 : 2f;
+ 293 : b0; --     popl %esi
+ 294 : 6f;
+ 295 : 90; --     ret
+ 296 : a0; --     pushl %eax
+ 297 : 0f;
+ 298 : 30; --     irmovl $16, %eax
+ 299 : f0;
+ 29A : 10;
  29B : 00;
  29C : 00;
- 29D : b0; --                popl %ebx
- 29E : 3f;
- 29F : b0; --                popl %eax
- 2A0 : 0f;
- 2A1 : b0; --                popl %ecx
- 2A2 : 1f;
- 2A3 : 90; --                ret
- 2A4 : a0; -- clean_screen:      pushl %eax
- 2A5 : 0f;
- 2A6 : a0; --                    pushl %ebx
- 2A7 : 3f;
- 2A8 : a0; --                    pushl %ecx
- 2A9 : 1f;
- 2AA : 30; --                    irmovl $0, %eax
- 2AB : f0;
- 2AC : 00;
- 2AD : 00;
- 2AE : 00;
+ 29D : 00;
+ 29E : 40; --     rmmovl %eax, 0xf4fffffc-16(%eax)
+ 29F : 00;
+ 2A0 : ec;
+ 2A1 : ff;
+ 2A2 : ff;
+ 2A3 : f4;
+ 2A4 : 80; --     call delay
+ 2A5 : ac;
+ 2A6 : 02;
+ 2A7 : 00;
+ 2A8 : 00;
+ 2A9 : b0; --     popl %eax
+ 2AA : 0f;
+ 2AB : 90; --     ret
+ 2AC : a0; --     pushl %ebx
+ 2AD : 3f;
+ 2AE : 64; --     orl %eax, %eax
  2AF : 00;
- 2B0 : 30; --                    irmovl $0xf4000000, %ebx
- 2B1 : f3;
- 2B2 : 00;
+ 2B0 : 73; --     je delay_ret
+ 2B1 : d1;
+ 2B2 : 02;
  2B3 : 00;
  2B4 : 00;
- 2B5 : f4;
- 2B6 : 30; --                    irmovl 0xf4000000+1024*600, %ecx
- 2B7 : f1;
- 2B8 : 00;
- 2B9 : 60;
- 2BA : 09;
- 2BB : f4;
- 2BC : 40; -- clean_screen_loop: rmmovl %eax, 0(%ebx)
- 2BD : 03;
- 2BE : 00;
- 2BF : 00;
- 2C0 : 00;
- 2C1 : 00;
- 2C2 : d0; --                    iaddl $1, %ebx
- 2C3 : f3;
- 2C4 : 01;
+ 2B5 : 30; --     irmovl FREQ/1000/11, %ebx
+ 2B6 : f3;
+ 2B7 : 1a;
+ 2B8 : 07;
+ 2B9 : 00;
+ 2BA : 00;
+ 2BB : d0; --     iaddl $-1, %ebx
+ 2BC : f3;
+ 2BD : ff;
+ 2BE : ff;
+ 2BF : ff;
+ 2C0 : ff;
+ 2C1 : 74; --     jne loop2
+ 2C2 : bb;
+ 2C3 : 02;
+ 2C4 : 00;
  2C5 : 00;
- 2C6 : 00;
- 2C7 : 00;
- 2C8 : 66; --                    cmpl %ebx, %ecx
- 2C9 : 31;
- 2CA : 74; --                    jne clean_screen_loop
- 2CB : bc;
- 2CC : 02;
- 2CD : 00;
- 2CE : 00;
- 2CF : b0; --                    popl %ecx
- 2D0 : 1f;
- 2D1 : b0; --                    popl %ebx
+ 2C6 : d0; --     iaddl $-1, %eax
+ 2C7 : f0;
+ 2C8 : ff;
+ 2C9 : ff;
+ 2CA : ff;
+ 2CB : ff;
+ 2CC : 70; --     jmp loop
+ 2CD : ae;
+ 2CE : 02;
+ 2CF : 00;
+ 2D0 : 00;
+ 2D1 : b0; --     popl %ebx
  2D2 : 3f;
- 2D3 : b0; --                    popl %eax
- 2D4 : 0f;
- 2D5 : 90; --                    ret
+ 2D3 : 90; --     ret
+ 2D4 : 30; --     irmovl $0xf3000000, %eax
+ 2D5 : f0;
  2D6 : 00;
  2D7 : 00;
  2D8 : 00;
- 2D9 : 00;
- 2DA : 00;
+ 2D9 : f3;
+ 2DA : 50; --     mrmovl 16(%eax), %eax
  2DB : 00;
- 2DC : 00;
+ 2DC : 10;
  2DD : 00;
  2DE : 00;
  2DF : 00;
- 2E0 : 00;
- 2E1 : 00;
- 2E2 : 00;
+ 2E0 : d3; --     ixorl $0xf, %eax
+ 2E1 : f0;
+ 2E2 : 0f;
  2E3 : 00;
  2E4 : 00;
  2E5 : 00;
- 2E6 : 00;
- 2E7 : 00;
- 2E8 : 00;
- 2E9 : 00;
- 2EA : 00;
+ 2E6 : 90; --     ret
+ 2E7 : 30; --     irmovl HelloWorld, %eax
+ 2E8 : f0;
+ 2E9 : a0;
+ 2EA : 09;
  2EB : 00;
  2EC : 00;
- 2ED : 00;
- 2EE : 00;
- 2EF : 00;
- 2F0 : 00;
+ 2ED : 30; --     irmovl $400, %ebx
+ 2EE : f3;
+ 2EF : 90;
+ 2F0 : 01;
  2F1 : 00;
  2F2 : 00;
- 2F3 : 00;
- 2F4 : 00;
- 2F5 : 00;
- 2F6 : 00;
+ 2F3 : 30; --     irmovl $300, %ecx
+ 2F4 : f1;
+ 2F5 : 2c;
+ 2F6 : 01;
  2F7 : 00;
  2F8 : 00;
- 2F9 : 00;
- 2FA : 00;
- 2FB : 00;
+ 2F9 : 80; --     call print_string
+ 2FA : a3;
+ 2FB : 01;
  2FC : 00;
  2FD : 00;
- 2FE : 00;
- 2FF : 00;
+ 2FE : 30; --     irmovl $0, %eax
+ 2FF : f0;
  300 : 00;
  301 : 00;
  302 : 00;
  303 : 00;
- 304 : 00;
+ 304 : 40; --     rmmovl %eax, 0xf4fffffc(%eax)
  305 : 00;
- 306 : 00;
- 307 : 00;
- 308 : 00;
- 309 : 00;
- 30A : 00;
- 30B : 00;
- 30C : 00;
+ 306 : fc;
+ 307 : ff;
+ 308 : ff;
+ 309 : f4;
+ 30A : 80; --     call read_key
+ 30B : d4;
+ 30C : 02;
  30D : 00;
  30E : 00;
- 30F : 00;
- 310 : 00;
- 311 : 00;
+ 30F : d2; --     iandl $2, %eax
+ 310 : f0;
+ 311 : 02;
  312 : 00;
  313 : 00;
  314 : 00;
- 315 : 00;
- 316 : 00;
- 317 : 00;
+ 315 : 73; --     je wait_key
+ 316 : 0a;
+ 317 : 03;
  318 : 00;
  319 : 00;
- 31A : 00;
- 31B : 00;
- 31C : 00;
- 31D : 00;
- 31E : 00;
+ 31A : 90; --     ret
+ 31B : 30; --          irmovl SCREEN_X / 2, %eax
+ 31C : f0;
+ 31D : 90;
+ 31E : 01;
  31F : 00;
  320 : 00;
- 321 : 00;
- 322 : 00;
- 323 : 00;
- 324 : 00;
+ 321 : 30; --          irmovl SCREEN_Y / 2, %ebx
+ 322 : f3;
+ 323 : 2c;
+ 324 : 01;
  325 : 00;
  326 : 00;
- 327 : 00;
- 328 : 00;
- 329 : 00;
- 32A : 00;
- 32B : 00;
- 32C : 00;
- 32D : 00;
- 32E : 00;
- 32F : 00;
- 330 : 00;
- 331 : 00;
- 332 : 00;
- 333 : 00;
- 334 : 00;
+ 327 : 30; --          irmovl -SPEED, %ecx
+ 328 : f1;
+ 329 : fe;
+ 32A : ff;
+ 32B : ff;
+ 32C : ff;
+ 32D : 30; --          irmovl -SPEED, %edx
+ 32E : f2;
+ 32F : fe;
+ 330 : ff;
+ 331 : ff;
+ 332 : ff;
+ 333 : e6; -- loop:    cmpi %eax, $0
+ 334 : 0f;
  335 : 00;
  336 : 00;
  337 : 00;
  338 : 00;
- 339 : 00;
- 33A : 00;
- 33B : 00;
+ 339 : 73; --          je flip_dx
+ 33A : 4e;
+ 33B : 03;
  33C : 00;
  33D : 00;
- 33E : 00;
- 33F : 00;
- 340 : 00;
- 341 : 00;
+ 33E : e6; --          cmpi %eax, SCREEN_X
+ 33F : 0f;
+ 340 : 20;
+ 341 : 03;
  342 : 00;
  343 : 00;
- 344 : 00;
- 345 : 00;
- 346 : 00;
+ 344 : 73; --          je flip_dx
+ 345 : 4e;
+ 346 : 03;
  347 : 00;
  348 : 00;
- 349 : 00;
- 34A : 00;
- 34B : 00;
+ 349 : 70; --          jmp skip_dx
+ 34A : 54;
+ 34B : 03;
  34C : 00;
  34D : 00;
- 34E : 00;
- 34F : 00;
+ 34E : d1; -- flip_dx: isubl $0, %ecx
+ 34F : f1;
  350 : 00;
  351 : 00;
  352 : 00;
  353 : 00;
- 354 : 00;
- 355 : 00;
+ 354 : e6; --          cmpi %ebx, $0
+ 355 : 3f;
  356 : 00;
  357 : 00;
  358 : 00;
  359 : 00;
- 35A : 00;
- 35B : 00;
- 35C : 00;
+ 35A : 73; --          je flip_dy
+ 35B : 64;
+ 35C : 03;
  35D : 00;
  35E : 00;
- 35F : 00;
- 360 : 00;
- 361 : 00;
+ 35F : 70; --          jmp skip_dy
+ 360 : 6a;
+ 361 : 03;
  362 : 00;
  363 : 00;
- 364 : 00;
- 365 : 00;
+ 364 : d1; -- flip_dy: isubl $0, %edx
+ 365 : f2;
  366 : 00;
  367 : 00;
  368 : 00;
  369 : 00;
- 36A : 00;
- 36B : 00;
- 36C : 00;
- 36D : 00;
+ 36A : e6; --          cmpi %ebx, PAD_Y - BALL_RADIUS
+ 36B : 3f;
+ 36C : 37;
+ 36D : 02;
  36E : 00;
  36F : 00;
- 370 : 00;
- 371 : 00;
- 372 : 00;
+ 370 : 75; --          jge skip_check_pad
+ 371 : 9c;
+ 372 : 03;
  373 : 00;
  374 : 00;
- 375 : 00;
- 376 : 00;
- 377 : 00;
- 378 : 00;
+ 375 : e6; --          cmpi %ebx, PAD_Y - BALL_RADIUS - SPEED
+ 376 : 3f;
+ 377 : 35;
+ 378 : 02;
  379 : 00;
  37A : 00;
- 37B : 00;
- 37C : 00;
- 37D : 00;
+ 37B : 72; --          jl skip_check_pad
+ 37C : 9c;
+ 37D : 03;
  37E : 00;
  37F : 00;
- 380 : 00;
- 381 : 00;
- 382 : 00;
- 383 : 00;
- 384 : 00;
+ 380 : 66; --          cmpl %eax, %esi
+ 381 : 06;
+ 382 : 72; --          jl skip_check_pad
+ 383 : 9c;
+ 384 : 03;
  385 : 00;
  386 : 00;
- 387 : 00;
- 388 : 00;
- 389 : 00;
- 38A : 00;
- 38B : 00;
+ 387 : 20; --          rrmovl %esi, %edi
+ 388 : 67;
+ 389 : d0; --          iaddl PAD_LENGTH, %edi
+ 38A : f7;
+ 38B : 3c;
  38C : 00;
  38D : 00;
  38E : 00;
- 38F : 00;
- 390 : 00;
- 391 : 00;
- 392 : 00;
- 393 : 00;
+ 38F : 66; --          cmpl %eax, %edi
+ 390 : 07;
+ 391 : 76; --          jg skip_check_pad
+ 392 : 9c;
+ 393 : 03;
  394 : 00;
  395 : 00;
- 396 : 00;
- 397 : 00;
+ 396 : d1; --          isubl $0, %edx
+ 397 : f2;
  398 : 00;
  399 : 00;
  39A : 00;
  39B : 00;
- 39C : 00;
- 39D : 00;
- 39E : 00;
- 39F : 00;
+ 39C : e6; --          cmpi %ebx, SCREEN_Y - BALL_RADIUS - SPEED
+ 39D : 3f;
+ 39E : 53;
+ 39F : 02;
  3A0 : 00;
  3A1 : 00;
- 3A2 : 00;
- 3A3 : 00;
- 3A4 : 00;
+ 3A2 : 71; --          jle skip_dead
+ 3A3 : ad;
+ 3A4 : 03;
  3A5 : 00;
  3A6 : 00;
- 3A7 : 00;
- 3A8 : 00;
- 3A9 : 00;
+ 3A7 : 80; --          call gameover
+ 3A8 : 34;
+ 3A9 : 04;
  3AA : 00;
  3AB : 00;
- 3AC : 00;
- 3AD : 00;
- 3AE : 00;
- 3AF : 00;
- 3B0 : 00;
- 3B1 : 00;
- 3B2 : 00;
- 3B3 : 00;
- 3B4 : 00;
- 3B5 : 00;
- 3B6 : 00;
- 3B7 : 00;
- 3B8 : 00;
- 3B9 : 00;
+ 3AC : 90; --          ret
+ 3AD : 60; --          addl %ecx, %eax
+ 3AE : 10;
+ 3AF : 60; --          addl %edx, %ebx
+ 3B0 : 23;
+ 3B1 : a0; --          pushl %eax
+ 3B2 : 0f;
+ 3B3 : a0; --          pushl %ebx
+ 3B4 : 3f;
+ 3B5 : a0; --          pushl %ecx
+ 3B6 : 1f;
+ 3B7 : 80; --          call draw_ball
+ 3B8 : 45;
+ 3B9 : 04;
  3BA : 00;
  3BB : 00;
- 3BC : 00;
- 3BD : 00;
- 3BE : 00;
- 3BF : 00;
+ 3BC : e6; --          cmpi %esi, SCREEN_X - PAD_LENGTH
+ 3BD : 6f;
+ 3BE : e4;
+ 3BF : 02;
  3C0 : 00;
  3C1 : 00;
- 3C2 : 00;
- 3C3 : 00;
- 3C4 : 00;
+ 3C2 : 76; --          jg skip_move_pad_right
+ 3C3 : e4;
+ 3C4 : 03;
  3C5 : 00;
  3C6 : 00;
- 3C7 : 00;
- 3C8 : 00;
- 3C9 : 00;
+ 3C7 : 30; --          irmovl $0xf3000004, %edi
+ 3C8 : f7;
+ 3C9 : 04;
  3CA : 00;
  3CB : 00;
- 3CC : 00;
- 3CD : 00;
- 3CE : 00;
+ 3CC : f3;
+ 3CD : 50; --          mrmovl 0(%edi), %edi
+ 3CE : 77;
  3CF : 00;
  3D0 : 00;
  3D1 : 00;
  3D2 : 00;
- 3D3 : 00;
- 3D4 : 00;
- 3D5 : 00;
+ 3D3 : e6; --          cmpi %edi, $1
+ 3D4 : 7f;
+ 3D5 : 01;
  3D6 : 00;
  3D7 : 00;
  3D8 : 00;
- 3D9 : 00;
- 3DA : 00;
- 3DB : 00;
+ 3D9 : 73; --          je skip_move_pad_right
+ 3DA : e4;
+ 3DB : 03;
  3DC : 00;
  3DD : 00;
- 3DE : 00;
- 3DF : 00;
- 3E0 : 00;
+ 3DE : d0; --          iaddl PAD_SPEED, %esi
+ 3DF : f6;
+ 3E0 : 02;
  3E1 : 00;
  3E2 : 00;
  3E3 : 00;
- 3E4 : 00;
- 3E5 : 00;
+ 3E4 : e6; --          cmpi %esi, 0
+ 3E5 : 6f;
  3E6 : 00;
  3E7 : 00;
  3E8 : 00;
  3E9 : 00;
- 3EA : 00;
- 3EB : 00;
- 3EC : 00;
+ 3EA : 71; --          jle skip_move_pad_left
+ 3EB : 0c;
+ 3EC : 04;
  3ED : 00;
  3EE : 00;
- 3EF : 00;
- 3F0 : 00;
- 3F1 : 00;
+ 3EF : 30; --          irmovl $0xf3000008, %edi
+ 3F0 : f7;
+ 3F1 : 08;
  3F2 : 00;
  3F3 : 00;
- 3F4 : 00;
- 3F5 : 00;
- 3F6 : 00;
+ 3F4 : f3;
+ 3F5 : 50; --          mrmovl 0(%edi), %edi
+ 3F6 : 77;
  3F7 : 00;
  3F8 : 00;
  3F9 : 00;
  3FA : 00;
- 3FB : 00;
- 3FC : 00;
- 3FD : 00;
+ 3FB : e6; --          cmpi %edi, $1
+ 3FC : 7f;
+ 3FD : 01;
  3FE : 00;
  3FF : 00;
+ 400 : 00;
+ 401 : 73; --          je skip_move_pad_left
+ 402 : 0c;
+ 403 : 04;
+ 404 : 00;
+ 405 : 00;
+ 406 : d0; --          iaddl -PAD_SPEED, %esi
+ 407 : f6;
+ 408 : fe;
+ 409 : ff;
+ 40A : ff;
+ 40B : ff;
+ 40C : 20; --          rrmovl %esi, %eax
+ 40D : 60;
+ 40E : 30; --          irmovl PAD_Y, %ebx
+ 40F : f3;
+ 410 : 3a;
+ 411 : 02;
+ 412 : 00;
+ 413 : 00;
+ 414 : 30; --          irmovl PAD_LENGTH, %ecx
+ 415 : f1;
+ 416 : 3c;
+ 417 : 00;
+ 418 : 00;
+ 419 : 00;
+ 41A : 80; --          call draw_pad
+ 41B : 87;
+ 41C : 04;
+ 41D : 00;
+ 41E : 00;
+ 41F : b0; --          popl %ecx
+ 420 : 1f;
+ 421 : b0; --          popl %ebx
+ 422 : 3f;
+ 423 : b0; --          popl %eax
+ 424 : 0f;
+ 425 : 80; --          call draw_border
+ 426 : b3;
+ 427 : 04;
+ 428 : 00;
+ 429 : 00;
+ 42A : 80; --          call switch_buf
+ 42B : 96;
+ 42C : 02;
+ 42D : 00;
+ 42E : 00;
+ 42F : 70; --          jmp loop
+ 430 : 33;
+ 431 : 03;
+ 432 : 00;
+ 433 : 00;
+ 434 : 80; --          call read_key
+ 435 : d4;
+ 436 : 02;
+ 437 : 00;
+ 438 : 00;
+ 439 : d2; --          iandl $2, %eax
+ 43A : f0;
+ 43B : 02;
+ 43C : 00;
+ 43D : 00;
+ 43E : 00;
+ 43F : 73; --          je gameover
+ 440 : 34;
+ 441 : 04;
+ 442 : 00;
+ 443 : 00;
+ 444 : 90; --          ret
+ 445 : e5; -- draw_ball: slli %ebx, $10
+ 446 : 3f;
+ 447 : 0a;
+ 448 : 00;
+ 449 : 00;
+ 44A : 00;
+ 44B : 64; --            orl %ebx, %eax # get base
+ 44C : 30;
+ 44D : d0; --            iaddl 1024*3, %eax # get end variable
+ 44E : f0;
+ 44F : 00;
+ 450 : 0c;
+ 451 : 00;
+ 452 : 00;
+ 453 : 20; --            rrmovl %eax, %ebx
+ 454 : 03;
+ 455 : d0; --            iaddl -1024*5, %eax # set start variable
+ 456 : f0;
+ 457 : 00;
+ 458 : ec;
+ 459 : ff;
+ 45A : ff;
+ 45B : 40; -- draw_loop: rmmovl %ebx, (0xf4000000-2)(%eax)
+ 45C : 30;
+ 45D : fe;
+ 45E : ff;
+ 45F : ff;
+ 460 : f3;
+ 461 : 40; --            rmmovl %ebx, (0xf4000000-1)(%eax)
+ 462 : 30;
+ 463 : ff;
+ 464 : ff;
+ 465 : ff;
+ 466 : f3;
+ 467 : 40; --            rmmovl %ebx, (0xf4000000-0)(%eax)
+ 468 : 30;
+ 469 : 00;
+ 46A : 00;
+ 46B : 00;
+ 46C : f4;
+ 46D : 40; --            rmmovl %ebx, (0xf4000000+1)(%eax)
+ 46E : 30;
+ 46F : 01;
+ 470 : 00;
+ 471 : 00;
+ 472 : f4;
+ 473 : 40; --            rmmovl %ebx, (0xf4000000+2)(%eax) # draw a row
+ 474 : 30;
+ 475 : 02;
+ 476 : 00;
+ 477 : 00;
+ 478 : f4;
+ 479 : d0; --            iaddl $1024, %eax # move to next row
+ 47A : f0;
+ 47B : 00;
+ 47C : 04;
+ 47D : 00;
+ 47E : 00;
+ 47F : 66; --            cmpl %eax, %ebx # got end?
+ 480 : 03;
+ 481 : 74; --            jne draw_loop
+ 482 : 5b;
+ 483 : 04;
+ 484 : 00;
+ 485 : 00;
+ 486 : 90; --            ret
+ 487 : e5; -- draw_pad:      slli %ebx, $10
+ 488 : 3f;
+ 489 : 0a;
+ 48A : 00;
+ 48B : 00;
+ 48C : 00;
+ 48D : 64; --                orl %ebx, %eax # get base
+ 48E : 30;
+ 48F : 20; --                rrmovl %eax, %ebx
+ 490 : 03;
+ 491 : 60; --                addl %ecx, %ebx # get end variable
+ 492 : 13;
+ 493 : 40; -- draw_pad_loop: rmmovl %ecx, (0xf4000000+1024*0)(%eax)
+ 494 : 10;
+ 495 : 00;
+ 496 : 00;
+ 497 : 00;
+ 498 : f4;
+ 499 : 40; --                rmmovl %ecx, (0xf4000000+1024*1)(%eax)
+ 49A : 10;
+ 49B : 00;
+ 49C : 04;
+ 49D : 00;
+ 49E : f4;
+ 49F : 40; --                rmmovl %ecx, (0xf4000000+1024*2)(%eax)
+ 4A0 : 10;
+ 4A1 : 00;
+ 4A2 : 08;
+ 4A3 : 00;
+ 4A4 : f4;
+ 4A5 : d0; --                iaddl $1, %eax
+ 4A6 : f0;
+ 4A7 : 01;
+ 4A8 : 00;
+ 4A9 : 00;
+ 4AA : 00;
+ 4AB : 66; --                cmpl %eax, %ebx
+ 4AC : 03;
+ 4AD : 74; --                jne draw_pad_loop
+ 4AE : 93;
+ 4AF : 04;
+ 4B0 : 00;
+ 4B1 : 00;
+ 4B2 : 90; --                ret
+ 4B3 : a0; --     pushl %eax
+ 4B4 : 0f;
+ 4B5 : 30; --     irmovl $0xf4000000, %eax
+ 4B6 : f0;
+ 4B7 : 00;
+ 4B8 : 00;
+ 4B9 : 00;
+ 4BA : f4;
+ 4BB : 40; --     rmmovl %eax, (%eax)
+ 4BC : 00;
+ 4BD : 00;
+ 4BE : 00;
+ 4BF : 00;
+ 4C0 : 00;
+ 4C1 : 40; --     rmmovl %eax, 1024*599(%eax)
+ 4C2 : 00;
+ 4C3 : 00;
+ 4C4 : 5c;
+ 4C5 : 09;
+ 4C6 : 00;
+ 4C7 : d0; --     iaddl $1, %eax
+ 4C8 : f0;
+ 4C9 : 01;
+ 4CA : 00;
+ 4CB : 00;
+ 4CC : 00;
+ 4CD : e6; --     cmpi %eax, 0xf4000000+800
+ 4CE : 0f;
+ 4CF : 20;
+ 4D0 : 03;
+ 4D1 : 00;
+ 4D2 : f4;
+ 4D3 : 72; --     jl loop1
+ 4D4 : bb;
+ 4D5 : 04;
+ 4D6 : 00;
+ 4D7 : 00;
+ 4D8 : 30; --     irmovl $0xf4000000, %eax
+ 4D9 : f0;
+ 4DA : 00;
+ 4DB : 00;
+ 4DC : 00;
+ 4DD : f4;
+ 4DE : 40; --     rmmovl %eax, (%eax)
+ 4DF : 00;
+ 4E0 : 00;
+ 4E1 : 00;
+ 4E2 : 00;
+ 4E3 : 00;
+ 4E4 : 40; --     rmmovl %eax, 799(%eax)
+ 4E5 : 00;
+ 4E6 : 1f;
+ 4E7 : 03;
+ 4E8 : 00;
+ 4E9 : 00;
+ 4EA : d0; --     iaddl $1024, %eax
+ 4EB : f0;
+ 4EC : 00;
+ 4ED : 04;
+ 4EE : 00;
+ 4EF : 00;
+ 4F0 : e6; --     cmpi %eax, 0xf4000000+1024*600
+ 4F1 : 0f;
+ 4F2 : 00;
+ 4F3 : 60;
+ 4F4 : 09;
+ 4F5 : f4;
+ 4F6 : 72; --     jl loop2
+ 4F7 : de;
+ 4F8 : 04;
+ 4F9 : 00;
+ 4FA : 00;
+ 4FB : b0; --     popl %eax
+ 4FC : 0f;
+ 4FD : 90; --     ret
+ 4FE : 30; --          irmovl $400, %eax
+ 4FF : f0;
+ 500 : 90;
+ 501 : 01;
+ 502 : 00;
+ 503 : 00;
+ 504 : 30; --          irmovl $300, %ebx
+ 505 : f3;
+ 506 : 2c;
+ 507 : 01;
+ 508 : 00;
+ 509 : 00;
+ 50A : 30; --          irmovl -SPEED, %ecx
+ 50B : f1;
+ 50C : fd;
+ 50D : ff;
+ 50E : ff;
+ 50F : ff;
+ 510 : 30; --          irmovl -SPEED, %edx
+ 511 : f2;
+ 512 : fd;
+ 513 : ff;
+ 514 : ff;
+ 515 : ff;
+ 516 : e6; -- loop:    cmpi %eax, $0
+ 517 : 0f;
+ 518 : 00;
+ 519 : 00;
+ 51A : 00;
+ 51B : 00;
+ 51C : 71; --          jle flip_dx
+ 51D : 31;
+ 51E : 05;
+ 51F : 00;
+ 520 : 00;
+ 521 : e6; --          cmpi %eax, $800
+ 522 : 0f;
+ 523 : 20;
+ 524 : 03;
+ 525 : 00;
+ 526 : 00;
+ 527 : 75; --          jge flip_dx
+ 528 : 31;
+ 529 : 05;
+ 52A : 00;
+ 52B : 00;
+ 52C : 70; --          jmp skip_dx
+ 52D : 37;
+ 52E : 05;
+ 52F : 00;
+ 530 : 00;
+ 531 : d1; -- flip_dx: isubl $0, %ecx
+ 532 : f1;
+ 533 : 00;
+ 534 : 00;
+ 535 : 00;
+ 536 : 00;
+ 537 : e6; --          cmpi %ebx, $0
+ 538 : 3f;
+ 539 : 00;
+ 53A : 00;
+ 53B : 00;
+ 53C : 00;
+ 53D : 71; --          jle flip_dy
+ 53E : 52;
+ 53F : 05;
+ 540 : 00;
+ 541 : 00;
+ 542 : e6; --          cmpi %ebx, $600
+ 543 : 3f;
+ 544 : 58;
+ 545 : 02;
+ 546 : 00;
+ 547 : 00;
+ 548 : 75; --          jge flip_dy
+ 549 : 52;
+ 54A : 05;
+ 54B : 00;
+ 54C : 00;
+ 54D : 70; --          jmp skip_dy
+ 54E : 58;
+ 54F : 05;
+ 550 : 00;
+ 551 : 00;
+ 552 : d1; -- flip_dy: isubl $0, %edx
+ 553 : f2;
+ 554 : 00;
+ 555 : 00;
+ 556 : 00;
+ 557 : 00;
+ 558 : 60; --          addl %ecx, %eax
+ 559 : 10;
+ 55A : 60; --          addl %edx, %ebx
+ 55B : 23;
+ 55C : a0; --          pushl %eax
+ 55D : 0f;
+ 55E : a0; --          pushl %ebx
+ 55F : 3f;
+ 560 : 80; --          call draw_ball
+ 561 : 45;
+ 562 : 04;
+ 563 : 00;
+ 564 : 00;
+ 565 : 80; --          call draw_border
+ 566 : b3;
+ 567 : 04;
+ 568 : 00;
+ 569 : 00;
+ 56A : 80; --          call switch_buf
+ 56B : 96;
+ 56C : 02;
+ 56D : 00;
+ 56E : 00;
+ 56F : 80; --          call read_key
+ 570 : d4;
+ 571 : 02;
+ 572 : 00;
+ 573 : 00;
+ 574 : d2; --          iandl $2, %eax
+ 575 : f0;
+ 576 : 02;
+ 577 : 00;
+ 578 : 00;
+ 579 : 00;
+ 57A : b0; --          popl %ebx
+ 57B : 3f;
+ 57C : b0; --          popl %eax
+ 57D : 0f;
+ 57E : 73; --          je loop
+ 57F : 16;
+ 580 : 05;
+ 581 : 00;
+ 582 : 00;
+ 583 : 80; --          call read_key
+ 584 : d4;
+ 585 : 02;
+ 586 : 00;
+ 587 : 00;
+ 588 : d2; --          iandl $2, %eax
+ 589 : f0;
+ 58A : 02;
+ 58B : 00;
+ 58C : 00;
+ 58D : 00;
+ 58E : 74; --          jne exit_loop
+ 58F : 83;
+ 590 : 05;
+ 591 : 00;
+ 592 : 00;
+ 593 : 90; --          ret
+ 594 : 00;
+ 595 : 00;
+ 596 : 00;
+ 597 : 00;
+ 598 : 00;
+ 599 : 00;
+ 59A : 00;
+ 59B : 00;
+ 59C : 00;
+ 59D : 00;
+ 59E : 00;
+ 59F : 00;
+ 5A0 : 00;
+ 5A1 : 00;
+ 5A2 : 00;
+ 5A3 : 00;
+ 5A4 : 00;
+ 5A5 : 00;
+ 5A6 : 00;
+ 5A7 : 00;
+ 5A8 : 00;
+ 5A9 : 00;
+ 5AA : 00;
+ 5AB : 00;
+ 5AC : 00;
+ 5AD : 00;
+ 5AE : 00;
+ 5AF : 00;
+ 5B0 : 00;
+ 5B1 : 00;
+ 5B2 : 00;
+ 5B3 : 00;
+ 5B4 : 00;
+ 5B5 : 00;
+ 5B6 : 00;
+ 5B7 : 00;
+ 5B8 : 00;
+ 5B9 : 00;
+ 5BA : 00;
+ 5BB : 00;
+ 5BC : 00;
+ 5BD : 00;
+ 5BE : 00;
+ 5BF : 00;
+ 5C0 : 00;
+ 5C1 : 00;
+ 5C2 : 00;
+ 5C3 : 00;
+ 5C4 : 00;
+ 5C5 : 00;
+ 5C6 : 00;
+ 5C7 : 00;
+ 5C8 : 00;
+ 5C9 : 00;
+ 5CA : 00;
+ 5CB : 00;
+ 5CC : 00;
+ 5CD : 00;
+ 5CE : 00;
+ 5CF : 00;
+ 5D0 : 00;
+ 5D1 : 00;
+ 5D2 : 00;
+ 5D3 : 00;
+ 5D4 : 00;
+ 5D5 : 00;
+ 5D6 : 00;
+ 5D7 : 00;
+ 5D8 : 00;
+ 5D9 : 00;
+ 5DA : 00;
+ 5DB : 00;
+ 5DC : 00;
+ 5DD : 00;
+ 5DE : 00;
+ 5DF : 00;
+ 5E0 : 00;
+ 5E1 : 00;
+ 5E2 : 00;
+ 5E3 : 00;
+ 5E4 : 00;
+ 5E5 : 00;
+ 5E6 : 00;
+ 5E7 : 00;
+ 5E8 : 00;
+ 5E9 : 00;
+ 5EA : 00;
+ 5EB : 00;
+ 5EC : 00;
+ 5ED : 00;
+ 5EE : 00;
+ 5EF : 00;
+ 5F0 : 00;
+ 5F1 : 00;
+ 5F2 : 00;
+ 5F3 : 00;
+ 5F4 : 00;
+ 5F5 : 00;
+ 5F6 : 00;
+ 5F7 : 00;
+ 5F8 : 00;
+ 5F9 : 00;
+ 5FA : 00;
+ 5FB : 00;
+ 5FC : 00;
+ 5FD : 00;
+ 5FE : 00;
+ 5FF : 00;
+ 600 : 00;
+ 601 : 00;
+ 602 : 00;
+ 603 : 00;
+ 604 : 00;
+ 605 : 00;
+ 606 : 00;
+ 607 : 00;
+ 608 : 00;
+ 609 : 00;
+ 60A : 00;
+ 60B : 00;
+ 60C : 00;
+ 60D : 00;
+ 60E : 00;
+ 60F : 00;
+ 610 : 00;
+ 611 : 00;
+ 612 : 00;
+ 613 : 00;
+ 614 : 00;
+ 615 : 00;
+ 616 : 00;
+ 617 : 00;
+ 618 : 00;
+ 619 : 00;
+ 61A : 00;
+ 61B : 00;
+ 61C : 00;
+ 61D : 00;
+ 61E : 00;
+ 61F : 00;
+ 620 : 00;
+ 621 : 00;
+ 622 : 00;
+ 623 : 00;
+ 624 : 00;
+ 625 : 00;
+ 626 : 00;
+ 627 : 00;
+ 628 : 00;
+ 629 : 00;
+ 62A : 00;
+ 62B : 00;
+ 62C : 00;
+ 62D : 00;
+ 62E : 00;
+ 62F : 00;
+ 630 : 00;
+ 631 : 00;
+ 632 : 00;
+ 633 : 00;
+ 634 : 00;
+ 635 : 00;
+ 636 : 00;
+ 637 : 00;
+ 638 : 00;
+ 639 : 00;
+ 63A : 00;
+ 63B : 00;
+ 63C : 00;
+ 63D : 00;
+ 63E : 00;
+ 63F : 00;
+ 640 : 00;
+ 641 : 00;
+ 642 : 00;
+ 643 : 00;
+ 644 : 00;
+ 645 : 00;
+ 646 : 00;
+ 647 : 00;
+ 648 : 00;
+ 649 : 00;
+ 64A : 00;
+ 64B : 00;
+ 64C : 00;
+ 64D : 00;
+ 64E : 00;
+ 64F : 00;
+ 650 : 00;
+ 651 : 00;
+ 652 : 00;
+ 653 : 00;
+ 654 : 00;
+ 655 : 00;
+ 656 : 00;
+ 657 : 00;
+ 658 : 00;
+ 659 : 00;
+ 65A : 00;
+ 65B : 00;
+ 65C : 00;
+ 65D : 00;
+ 65E : 00;
+ 65F : 00;
+ 660 : 00;
+ 661 : 00;
+ 662 : 00;
+ 663 : 00;
+ 664 : 00;
+ 665 : 00;
+ 666 : 00;
+ 667 : 00;
+ 668 : 00;
+ 669 : 00;
+ 66A : 00;
+ 66B : 00;
+ 66C : 00;
+ 66D : 00;
+ 66E : 00;
+ 66F : 00;
+ 670 : 00;
+ 671 : 00;
+ 672 : 00;
+ 673 : 00;
+ 674 : 00;
+ 675 : 00;
+ 676 : 00;
+ 677 : 00;
+ 678 : 00;
+ 679 : 00;
+ 67A : 00;
+ 67B : 00;
+ 67C : 00;
+ 67D : 00;
+ 67E : 00;
+ 67F : 00;
+ 680 : 00;
+ 681 : 00;
+ 682 : 00;
+ 683 : 00;
+ 684 : 00;
+ 685 : 00;
+ 686 : 00;
+ 687 : 00;
+ 688 : 00;
+ 689 : 00;
+ 68A : 00;
+ 68B : 00;
+ 68C : 00;
+ 68D : 00;
+ 68E : 00;
+ 68F : 00;
+ 690 : 00;
+ 691 : 00;
+ 692 : 00;
+ 693 : 00;
+ 694 : 00;
+ 695 : 00;
+ 696 : 00;
+ 697 : 00;
+ 698 : 00;
+ 699 : 00;
+ 69A : 00;
+ 69B : 00;
+ 69C : 00;
+ 69D : 00;
+ 69E : 00;
+ 69F : 00;
+ 6A0 : 00;
+ 6A1 : 00;
+ 6A2 : 00;
+ 6A3 : 00;
+ 6A4 : 00;
+ 6A5 : 00;
+ 6A6 : 00;
+ 6A7 : 00;
+ 6A8 : 00;
+ 6A9 : 00;
+ 6AA : 00;
+ 6AB : 00;
+ 6AC : 00;
+ 6AD : 00;
+ 6AE : 00;
+ 6AF : 00;
+ 6B0 : 00;
+ 6B1 : 00;
+ 6B2 : 00;
+ 6B3 : 00;
+ 6B4 : 00;
+ 6B5 : 00;
+ 6B6 : 00;
+ 6B7 : 00;
+ 6B8 : 00;
+ 6B9 : 00;
+ 6BA : 00;
+ 6BB : 00;
+ 6BC : 00;
+ 6BD : 00;
+ 6BE : 00;
+ 6BF : 00;
+ 6C0 : 00;
+ 6C1 : 00;
+ 6C2 : 00;
+ 6C3 : 00;
+ 6C4 : 00;
+ 6C5 : 00;
+ 6C6 : 00;
+ 6C7 : 00;
+ 6C8 : 00;
+ 6C9 : 00;
+ 6CA : 00;
+ 6CB : 00;
+ 6CC : 00;
+ 6CD : 00;
+ 6CE : 00;
+ 6CF : 00;
+ 6D0 : 00;
+ 6D1 : 00;
+ 6D2 : 00;
+ 6D3 : 00;
+ 6D4 : 00;
+ 6D5 : 00;
+ 6D6 : 00;
+ 6D7 : 00;
+ 6D8 : 00;
+ 6D9 : 00;
+ 6DA : 00;
+ 6DB : 00;
+ 6DC : 00;
+ 6DD : 00;
+ 6DE : 00;
+ 6DF : 00;
+ 6E0 : 00;
+ 6E1 : 00;
+ 6E2 : 00;
+ 6E3 : 00;
+ 6E4 : 00;
+ 6E5 : 00;
+ 6E6 : 00;
+ 6E7 : 00;
+ 6E8 : 00;
+ 6E9 : 00;
+ 6EA : 00;
+ 6EB : 00;
+ 6EC : 00;
+ 6ED : 00;
+ 6EE : 00;
+ 6EF : 00;
+ 6F0 : 00;
+ 6F1 : 00;
+ 6F2 : 00;
+ 6F3 : 00;
+ 6F4 : 00;
+ 6F5 : 00;
+ 6F6 : 00;
+ 6F7 : 00;
+ 6F8 : 00;
+ 6F9 : 00;
+ 6FA : 00;
+ 6FB : 00;
+ 6FC : 00;
+ 6FD : 00;
+ 6FE : 00;
+ 6FF : 00;
+ 700 : 00;
+ 701 : 00;
+ 702 : 00;
+ 703 : 00;
+ 704 : 00;
+ 705 : 00;
+ 706 : 00;
+ 707 : 00;
+ 708 : 00;
+ 709 : 00;
+ 70A : 00;
+ 70B : 00;
+ 70C : 00;
+ 70D : 00;
+ 70E : 00;
+ 70F : 00;
+ 710 : 00;
+ 711 : 00;
+ 712 : 00;
+ 713 : 00;
+ 714 : 00;
+ 715 : 00;
+ 716 : 00;
+ 717 : 00;
+ 718 : 00;
+ 719 : 00;
+ 71A : 00;
+ 71B : 00;
+ 71C : 00;
+ 71D : 00;
+ 71E : 00;
+ 71F : 00;
+ 720 : 00;
+ 721 : 00;
+ 722 : 00;
+ 723 : 00;
+ 724 : 00;
+ 725 : 00;
+ 726 : 00;
+ 727 : 00;
+ 728 : 00;
+ 729 : 00;
+ 72A : 00;
+ 72B : 00;
+ 72C : 00;
+ 72D : 00;
+ 72E : 00;
+ 72F : 00;
+ 730 : 00;
+ 731 : 00;
+ 732 : 00;
+ 733 : 00;
+ 734 : 00;
+ 735 : 00;
+ 736 : 00;
+ 737 : 00;
+ 738 : 00;
+ 739 : 00;
+ 73A : 00;
+ 73B : 00;
+ 73C : 00;
+ 73D : 00;
+ 73E : 00;
+ 73F : 00;
+ 740 : 00;
+ 741 : 00;
+ 742 : 00;
+ 743 : 00;
+ 744 : 00;
+ 745 : 00;
+ 746 : 00;
+ 747 : 00;
+ 748 : 00;
+ 749 : 00;
+ 74A : 00;
+ 74B : 00;
+ 74C : 00;
+ 74D : 00;
+ 74E : 00;
+ 74F : 00;
+ 750 : 00;
+ 751 : 00;
+ 752 : 00;
+ 753 : 00;
+ 754 : 00;
+ 755 : 00;
+ 756 : 00;
+ 757 : 00;
+ 758 : 00;
+ 759 : 00;
+ 75A : 00;
+ 75B : 00;
+ 75C : 00;
+ 75D : 00;
+ 75E : 00;
+ 75F : 00;
+ 760 : 00;
+ 761 : 00;
+ 762 : 00;
+ 763 : 00;
+ 764 : 00;
+ 765 : 00;
+ 766 : 00;
+ 767 : 00;
+ 768 : 00;
+ 769 : 00;
+ 76A : 00;
+ 76B : 00;
+ 76C : 00;
+ 76D : 00;
+ 76E : 00;
+ 76F : 00;
+ 770 : 00;
+ 771 : 00;
+ 772 : 00;
+ 773 : 00;
+ 774 : 00;
+ 775 : 00;
+ 776 : 00;
+ 777 : 00;
+ 778 : 00;
+ 779 : 00;
+ 77A : 00;
+ 77B : 00;
+ 77C : 00;
+ 77D : 00;
+ 77E : 00;
+ 77F : 00;
+ 780 : 00;
+ 781 : 00;
+ 782 : 00;
+ 783 : 00;
+ 784 : 00;
+ 785 : 00;
+ 786 : 00;
+ 787 : 00;
+ 788 : 00;
+ 789 : 00;
+ 78A : 00;
+ 78B : 00;
+ 78C : 00;
+ 78D : 00;
+ 78E : 00;
+ 78F : 00;
+ 790 : 00;
+ 791 : 00;
+ 792 : 00;
+ 793 : 00;
+ 794 : 00;
+ 795 : 00;
+ 796 : 00;
+ 797 : 00;
+ 798 : 00;
+ 799 : 00;
+ 79A : 00;
+ 79B : 00;
+ 79C : 00;
+ 79D : 00;
+ 79E : 00;
+ 79F : 00;
+ 7A0 : 00;
+ 7A1 : 00;
+ 7A2 : 00;
+ 7A3 : 00;
+ 7A4 : 00;
+ 7A5 : 00;
+ 7A6 : 00;
+ 7A7 : 00;
+ 7A8 : 00;
+ 7A9 : 00;
+ 7AA : 00;
+ 7AB : 00;
+ 7AC : 00;
+ 7AD : 00;
+ 7AE : 00;
+ 7AF : 00;
+ 7B0 : 00;
+ 7B1 : 00;
+ 7B2 : 00;
+ 7B3 : 00;
+ 7B4 : 00;
+ 7B5 : 00;
+ 7B6 : 00;
+ 7B7 : 00;
+ 7B8 : 00;
+ 7B9 : 00;
+ 7BA : 00;
+ 7BB : 00;
+ 7BC : 00;
+ 7BD : 00;
+ 7BE : 00;
+ 7BF : 00;
+ 7C0 : 00;
+ 7C1 : 00;
+ 7C2 : 00;
+ 7C3 : 00;
+ 7C4 : 00;
+ 7C5 : 00;
+ 7C6 : 00;
+ 7C7 : 00;
+ 7C8 : 00;
+ 7C9 : 00;
+ 7CA : 00;
+ 7CB : 00;
+ 7CC : 00;
+ 7CD : 00;
+ 7CE : 00;
+ 7CF : 00;
+ 7D0 : 00;
+ 7D1 : 00;
+ 7D2 : 00;
+ 7D3 : 00;
+ 7D4 : 00;
+ 7D5 : 00;
+ 7D6 : 00;
+ 7D7 : 00;
+ 7D8 : 00;
+ 7D9 : 00;
+ 7DA : 00;
+ 7DB : 00;
+ 7DC : 00;
+ 7DD : 00;
+ 7DE : 00;
+ 7DF : 00;
+ 7E0 : 00;
+ 7E1 : 00;
+ 7E2 : 00;
+ 7E3 : 00;
+ 7E4 : 00;
+ 7E5 : 00;
+ 7E6 : 00;
+ 7E7 : 00;
+ 7E8 : 00;
+ 7E9 : 00;
+ 7EA : 00;
+ 7EB : 00;
+ 7EC : 00;
+ 7ED : 00;
+ 7EE : 00;
+ 7EF : 00;
+ 7F0 : 00;
+ 7F1 : 00;
+ 7F2 : 00;
+ 7F3 : 00;
+ 7F4 : 00;
+ 7F5 : 00;
+ 7F6 : 00;
+ 7F7 : 00;
+ 7F8 : 00;
+ 7F9 : 00;
+ 7FA : 00;
+ 7FB : 00;
+ 7FC : 00;
+ 7FD : 00;
+ 7FE : 00;
+ 7FF : 00;
 END;
