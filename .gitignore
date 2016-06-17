@@ -1,6 +1,7 @@
 *.bak
 *.sof
 *.swp
+*.mif
 ~*
 *.pyc
 /sc_computer.asm.rpt
