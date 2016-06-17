@@ -3,8 +3,8 @@
 INSTMEM_SIZE=2048
 DATAMEM_SIZE=4096
 
-MENU_APP = helloworld.S y86ballgame.S y86ball.S
-LIBS := print.S key.S vga.S
+MENU_APP = helloworld.S y86ballgame.S y86ball.S about.S
+LIBS := print.S key.S vga.S sw.S gui.S seg.S
 
 build-%: %.inst.mif %.data.mif
 	@exit 0
