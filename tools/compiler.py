@@ -23,9 +23,15 @@ def main():
         assembler.compile(filename)
     assembler.relocate()
     if instmif != None:
+        if assembler.instmem.get_size() > instmif.memory.size:
+            print "Inst mem too small, need %dB" % (assembler.instmem.get_size())
+            sys.exit(1)
         assembler.instmem.fill(instmif.memory)
         instmif.write_back()
     if datamif != None:
+        if assembler.datamem.get_size() > datamif.memory.size:
+            print "Data mem too small, need %dB" % (assembler.datamem.get_size())
+            sys.exit(1)
         assembler.datamem.fill(datamif.memory)
         datamif.write_back()
 

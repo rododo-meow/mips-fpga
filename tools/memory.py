@@ -14,9 +14,7 @@ class Memory:
             self.buf[i] = [ [0] * unit, None ]
 
     def set(self, addr, bytes, comment = None):
-        if ((addr % self.unit != 0) or (len(bytes) % self.unit != 0)) and comment != None:
-            raise "Can't set comment for unaligned data"
-        elif comment != None:
+        if comment != None:
             if self.auto and not self.buf.has_key(addr / self.unit):
                 self.buf[addr / self.unit] = [ {}, None ]
             self.buf[addr / self.unit][1] = comment
@@ -34,7 +32,7 @@ class Memory:
         if len == None:
             len = self.unit
         bytes = []
-        if len == self.unit and addr % self.unit == 0:
+        if len <= self.unit and addr % self.unit == 0:
             if self.auto and not self.buf.has_key(addr / self.unit):
                 comment = None
             else:
@@ -50,6 +48,9 @@ class Memory:
                 bytes = bytes + [ self.buf[addr / self.unit][0][addr % self.unit] ]
             addr = addr + 1
         return bytes, comment
+
+    def get_size(self):
+        return self.size
 
     def fill(self, another):
         for i in xrange(0, self.size):

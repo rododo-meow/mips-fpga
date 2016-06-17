@@ -184,8 +184,11 @@ class Assembler:
         self.y86_ins += self.__make("y86", "RR", "Cmpl")
         self.y86_ins += self.__make("y86", "IR", "Iaddl")
         self.y86_ins += self.__make("y86", "IR", "Isubl")
+        self.y86_ins += self.__make("y86", "IR", "Iandl")
+        self.y86_ins += self.__make("y86", "IR", "Ixorl")
         self.y86_ins += self.__make("y86", "IR", "Iorl")
         self.y86_ins += self.__make("y86", "RI", "Slli")
+        self.y86_ins += self.__make("y86", "RI", "Subi")
         self.asm_ins += self.__make("asm", "0", "Text")
         self.asm_ins += self.__make("asm", "I", "Org")
         self.asm_ins += self.__make("asm", "0", "Data")
@@ -194,31 +197,42 @@ class Assembler:
         self.asm_ins += self.__make("asm", "0", "MIPS")
         self.asm_ins += self.__make("asm", "0", "Y86")
         self.asm_ins += self.__make("asm", "Define", "Define")
-        self.asm_ins += self.__make("asm", "Name", "Global")
+        self.asm_ins += self.__make("asm", "Name", "Export")
         self.asm_ins += self.__make("asm", "Name", "Extern")
+        self.asm_ins += self.__make("asm", "I", "Zero")
+        self.asm_ins += self.__make("asm", "String", "String")
+        self.asm_ins += self.__make("asm", "String", "Lib")
         self.instmem = Memory(0, 1)
-        self.datamem = Memory(0, 1)
-        self.label = {}
+        self.datamem = Memory(0, 4)
         self.inst_now = 0
         self.data_now = 0
         self.reloc = []
-        self.mode = "MIPS"
-        self.sect = "text"
-        self.defines = {}
         self.globals = {}
-        self.exports = []
-        self.externs = []
+        self.libs = []
 
     def __make(self, isa, type, name):
         return [ [ Assembler.__dict__["_Assembler__" + isa + "_generate" + type](name.lower()), Assembler.__dict__["_Assembler__" + isa + "_resolv" + type](__bind(Assembler.__dict__["_Assembler__" + isa + "_Issue" + name], self)) ] ]
 
     def __make_reloc(self, type, addr, value):
-        return [ [ type, addr, value, self.defines ] ]
+        tmp = value
+        while True:
+            for d in self.defines.keys():
+                tmp = tmp.replace(d, self.defines[d])
+            if tmp == value:
+                break
+            value = tmp
+        return [ [ type, addr, value, self.label ] ]
 
     def compile(self, filename):
+        if filename in self.libs:
+            return
+        self.label = {}
         self.defines = {}
         self.exports = []
         self.externs = []
+        self.new_libs = []
+        self.sect = "text"
+        self.mode = "MIPS"
         with open(filename, "r") as f:
             for l in f.readlines():
                 if self.re_label.match(l):
@@ -252,27 +266,22 @@ class Assembler:
             if self.globals.has_key(i):
                 raise BaseException("Duplicated export of %s" % (i))
             self.globals[i] = self.label[i]
-        self.exports = []
-        self.externs = []
-
+        tmp_new_libs = self.new_libs
+        self.libs += [filename]
+        for i in tmp_new_libs:
+            if i not in self.libs:
+                self.compile(i)
 
     def relocate(self):
         for r in self.reloc:
-            tmp = r[2]
-            while True:
-                for d in self.defines.keys():
-                    tmp = tmp.replace(d, self.defines[d])
-                if tmp == r[2]:
-                    break
-                r[2] = tmp
             try:
                 if r[0] == "MIPS_IMM":
-                    imm = eval(r[2], self.label)
+                    imm = eval(r[2], dict(self.globals, **r[3]))
                     if imm > 0xffff:
                         print >>sys.stderr, "Warning: imm '%s' overflow" % (r[2])
                     r[1][0].set(r[1][1], [ imm & 0xff, (imm >> 8) & 0xff ])
                 elif r[0] == "MIPS_OFF":
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     target -= (r[1][1] + 4)
                     if target & 0x3 != 0:
                         print >>sys.stderr, "Error: pc offset '%s' not aligned" % (r[2])
@@ -283,7 +292,7 @@ class Assembler:
                         sys.exit(1)
                     r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff ])
                 elif r[0] == "MIPS_ADDR":
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     if target & 0x3 != 0:
                         print >>sys.stderr, "Error: direct jump to '%s' not aligned" % (r[2])
                         sys.exit(1)
@@ -293,19 +302,19 @@ class Assembler:
                     target = target >> 2
                     r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (r[1][0].get(r[1][1] + 3, 1)[0][0] & 0xfc) | ((target >> 24) & 0x03) ])
                 elif r[0] == "WORD":
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     if target > 0xffffffff or target < -0x100000000:
                         print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
                     r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
                 elif r[0] == "Y86_IMM":
                     if r[2][0] == "$":
                         r[2] = r[2][1:]
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     if target > 0xffffffff or target < -0x100000000:
                         print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
                     r[1][0].set(r[1][1], [ target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, (target >> 24) & 0xff ])
                 elif r[0] == "MIPS_Y86_ADDR":
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     if (target >> 26) & 0x3f != (r[1][1] >> 26) & 0x3f:
                         print >>sys.stderr, "Error: direct jump to '%s' overflow" % (r[2])
                         sys.exit(1)
@@ -313,7 +322,7 @@ class Assembler:
                 elif r[0] == "Y86_MIPS_ADDR":
                     if r[2][0] == "$":
                         r[2] = r[2][1:]
-                    target = eval(r[2], self.label)
+                    target = eval(r[2], dict(self.globals, **r[3]))
                     if target > 0xffffffff or target < -0x100000000:
                         print >>sys.stderr, "Warning: word '%s' overflow" % (r[2])
                     if target & 0x3 != 0:
@@ -536,8 +545,17 @@ class Assembler:
     def __y86_IssueIsubl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd1, 0xf, rb, 0), comment)
         self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueIandl(self, V, rb, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xd2, 0xf, rb, 0), comment)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueIxorl(self, V, rb, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xd3, 0xf, rb, 0), comment)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueIorl(self, V, rb, comment):
         addr = self.__issue(__make_y86_ins("6", 0xd4, 0xf, rb, 0), comment)
+        self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
+    def __y86_IssueSubi(self, ra, V, comment):
+        addr = self.__issue(__make_y86_ins("6", 0xe1, ra, 0xf, 0), comment)
         self.reloc += self.__make_reloc("Y86_IMM", ( addr[0], addr[1] + 2 ), V)
     def __y86_IssueSlli(self, ra, V, comment):
         addr = self.__issue(__make_y86_ins("6", 0xe5, ra, 0xf, 0), comment)
@@ -550,7 +568,7 @@ class Assembler:
     def __asm_generateI(name):
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([0-9]+|0[xX][0-9a-fA-F]+)\s+(#.*)?$")
     def __asm_resolvI(func):
-        return lambda match: func(myint(match.group(1)))
+        return lambda match: func(myint(match.group(1)), __cut_tail_newline(match.group(0)))
     def __asm_generateE(name):
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([^#\r\n]+)\s+(#.*)?$")
     def __asm_resolvE(func):
@@ -567,12 +585,16 @@ class Assembler:
         return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + r"\s+([^#\r\n \t]+)\s*(#.*)?$")
     def __asm_resolvName(func):
         return lambda match: func(match.group(1), __cut_tail_newline(match.group(0)))
+    def __asm_generateString(name):
+        return re.compile(r"^(?:\s*[_a-zA-Z][_0-9a-zA-Z]*\s*:)?\s*\." + name + "\\s+\\\"((?:[^\"]|\\\")+)\"\s*(#.*)?$")
+    def __asm_resolvString(func):
+        return lambda match: func(match.group(1), __cut_tail_newline(match.group(0)))
 
     def __asm_IssueText(self):
         self.sect = "text"
     def __asm_IssueData(self):
         self.sect = "data"
-    def __asm_IssueOrg(self, now):
+    def __asm_IssueOrg(self, now, comment):
         if self.sect == "text":
             self.inst_now = now
         elif self.sect == "data":
@@ -590,10 +612,22 @@ class Assembler:
         self.mode = "Y86"
     def __asm_IssueDefine(self, name, value, comment):
         self.defines[name] = value
-    def __asm_IssueGlobal(self, name, comment):
+    def __asm_IssueExport(self, name, comment):
         self.exports += [ name ]
     def __asm_IssueExtern(self, name, comment):
         self.externs += [ name ]
+    def __asm_IssueZero(self, count, comment):
+        if count <= 0:
+            return
+        for i in xrange(0, count - 1):
+            self.__issue([0] * 4, None)
+        self.__issue([0] * 4, comment)
+    def __asm_IssueString(self, string, comment):
+        for i in xrange(0, len(string)):
+            self.__issue([ord(string[i]),0,0,0], None)
+        self.__issue([0] * 4, comment)
+    def __asm_IssueLib(self, string, comment):
+        self.new_libs += [string]
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
