@@ -119,6 +119,8 @@ menu:
     .word BallGameEntry
     .word Ball
     .word BallEntry
+    .word About
+    .word AboutEntry
     .word 0
     .word 0
 menu_end:
@@ -128,6 +130,7 @@ cur: .word 0
 HelloWorld: .string "hello_world"
 BallGame: .string "ball_game"
 Ball: .string "ball"
+About: .string "about"
 
     .zero 100
 Stack:
